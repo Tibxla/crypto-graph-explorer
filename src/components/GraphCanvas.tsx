@@ -63,23 +63,14 @@ export default function GraphCanvas({ nodes, edges, onNodeSelect, selectedNode, 
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius((d: any) => sizeScale(d.degree) + 2));
 
-    // Draw edges
+    // Draw edges - thin gray lines
     const link = g.append('g')
       .selectAll('line')
       .data(activeEdges)
       .join('line')
-      .attr('stroke', () => {
-        const isLight = document.documentElement.classList.contains('light');
-        return isLight ? 'hsl(220, 15%, 50%)' : 'hsl(220, 15%, 20%)';
-      })
-      .attr('stroke-width', (d: any) => {
-        const isLight = document.documentElement.classList.contains('light');
-        return isLight ? 1.2 : 0.5;
-      })
-      .attr('stroke-opacity', () => {
-        const isLight = document.documentElement.classList.contains('light');
-        return isLight ? 0.7 : 0.4;
-      });
+      .attr('stroke', '#9ca3af')
+      .attr('stroke-width', 1)
+      .attr('stroke-opacity', 0.4);
 
     // Draw nodes
     const node = g.append('g')
