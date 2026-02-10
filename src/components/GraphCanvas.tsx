@@ -59,9 +59,18 @@ export default function GraphCanvas({ nodes, edges, onNodeSelect, selectedNode, 
       .selectAll('line')
       .data(activeEdges)
       .join('line')
-      .attr('stroke', 'hsl(220, 15%, 20%)')
-      .attr('stroke-width', 0.5)
-      .attr('stroke-opacity', 0.4);
+      .attr('stroke', () => {
+        const isLight = document.documentElement.classList.contains('light');
+        return isLight ? 'hsl(220, 15%, 50%)' : 'hsl(220, 15%, 20%)';
+      })
+      .attr('stroke-width', (d: any) => {
+        const isLight = document.documentElement.classList.contains('light');
+        return isLight ? 1.2 : 0.5;
+      })
+      .attr('stroke-opacity', () => {
+        const isLight = document.documentElement.classList.contains('light');
+        return isLight ? 0.7 : 0.4;
+      });
 
     // Draw nodes
     const node = g.append('g')
