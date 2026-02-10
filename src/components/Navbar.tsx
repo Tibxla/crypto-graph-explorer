@@ -1,4 +1,5 @@
-import { Network, Upload, BarChart3, Info } from 'lucide-react';
+import { Network, Upload, BarChart3, Sun, Moon } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface NavbarProps {
   activeTab: string;
@@ -7,6 +8,11 @@ interface NavbarProps {
 }
 
 export default function Navbar({ activeTab, onTabChange, onFileUpload }: NavbarProps) {
+  const [isLight, setIsLight] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', isLight);
+  }, [isLight]);
   return (
     <nav className="h-14 border-b border-border flex items-center px-4 gap-4 glass">
       <div className="flex items-center gap-2">
@@ -35,6 +41,14 @@ export default function Navbar({ activeTab, onTabChange, onFileUpload }: NavbarP
           </button>
         ))}
       </div>
+
+      <button
+        onClick={() => setIsLight(!isLight)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border border-border hover:border-primary/50 transition-colors"
+        title={isLight ? 'Mode sombre' : 'Mode clair'}
+      >
+        {isLight ? <Moon size={14} /> : <Sun size={14} />}
+      </button>
 
       <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium cursor-pointer border border-border hover:border-primary/50 transition-colors">
         <Upload size={14} />
