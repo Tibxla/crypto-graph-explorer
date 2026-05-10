@@ -94,8 +94,8 @@ export default function GraphCanvas({
       .transition()
       .duration(300)
       .attr('stroke-width', (d: any) => {
-        if (highlightedNodes.has(d.id)) return 5;
-        return selectedNode?.id === d.id ? 4 : 2;
+        if (highlightedNodes.has(d.id)) return 6;
+        return selectedNode?.id === d.id ? 5 : 2;
       })
       .attr('stroke', (d: any) => {
         if (highlightedNodes.has(d.id)) {
@@ -110,6 +110,7 @@ export default function GraphCanvas({
         if (highlightedNodes.size > 0) {
           return highlightedNodes.has(d.id) ? 1 : 0.25;
         }
+        if (selectedNode?.id === d.id) return 1;
         return 0.95;
       })
       .attr('filter', (d: any) => {
@@ -434,6 +435,17 @@ export default function GraphCanvas({
         console.log('Node clicked:', d.id);
         const newSelectedNode = selectedNode?.id === d.id ? null : d;
         onNodeSelect(newSelectedNode);
+        
+        // Freeze/unfreeze node position based on selection
+        if (newSelectedNode) {
+          d.fx = d.x;
+          d.fy = d.y;
+          simulation.alphaTarget(0.1).restart();
+        } else {
+          d.fx = null;
+          d.fy = null;
+          if (!simulation.alpha()) simulation.alpha(0.3).restart();
+        }
 
         // Force immediate visual update
         if (nodeRef.current) {
@@ -504,19 +516,6 @@ export default function GraphCanvas({
       );
 
     nodeRef.current = nodeGroup;
-
-    // Add labels to nodes (only visible when zoomed in enough or for large nodes)
-    const labels = nodeGroup.append('text')
-      .text((d) => shortenAddress(d.id))
-      .attr('font-size', (d) => Math.max(9, sizeScale(d.pagerank) * 0.5) + 'px')
-      .attr('font-family', 'system-ui, -apple-system, sans-serif')
-      .attr('font-weight', '600')
-      .attr('fill', '#1f2937')
-      .attr('text-anchor', 'middle')
-      .attr('dy', (d) => sizeScale(d.pagerank) + 16)
-      .attr('pointer-events', 'none')
-      .style('user-select', 'none')
-      .attr('opacity', 0.7);
 
     // Tooltip with better styling
     const tooltip = d3.select(containerRef.current)

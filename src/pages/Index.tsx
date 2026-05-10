@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Network } from 'lucide-react';
+import { Network, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import GraphCanvas from '@/components/GraphCanvas';
 import GraphStats from '@/components/GraphStats';
@@ -22,6 +22,8 @@ export default function Index() {
   const [highlightedNodes, setHighlightedNodes] = useState<Set<string>>(new Set());
   const [highlightedEdges, setHighlightedEdges] = useState<Array<{source: string, target: string}>>([]); 
   const [visualizationMode, setVisualizationMode] = useState<string | null>(null);
+  const [showStatsPanel, setShowStatsPanel] = useState(true);
+  const [showAnalysisPanel, setShowAnalysisPanel] = useState(true);
 
   const loadCSV = useCallback(async (csvText: string) => {
     setLoading(true);
@@ -78,8 +80,10 @@ export default function Index() {
       <Navbar activeTab={activeTab} onTabChange={setActiveTab} onFileUpload={handleFileUpload} />
       
       <div className="flex-1 flex overflow-hidden">
-        {/* Left panel */}
-        <div className="w-72 border-r border-border flex-shrink-0">
+        {/* Left panel - Collapsible */}
+        <div className={`border-r border-border flex-shrink-0 transition-all duration-300 overflow-hidden ${
+          showStatsPanel ? 'w-80' : 'w-0'
+        }`}>
           <StatsPanel
             stats={stats}
             selectedNode={selectedNode}
@@ -88,8 +92,38 @@ export default function Index() {
           />
         </div>
 
-        {/* Center: Graph */}
-        <div className="flex-1 relative">
+        {/* Center: Graph + Toggle Button */}
+        <div className="flex-1 relative flex flex-col">
+          {/* Toggle Stats Panel Button */}
+          <button
+            onClick={() => setShowStatsPanel(!showStatsPanel)}
+            className="absolute top-4 left-4 z-10 p-1.5 rounded-lg border border-border hover:border-primary/50 hover:bg-secondary/50 transition-all duration-200 glass"
+            title={showStatsPanel ? 'Masquer le panneau' : 'Afficher le panneau'}
+          >
+            {showStatsPanel ? (
+              <ChevronLeft size={16} className="text-muted-foreground hover:text-primary transition-colors" />
+            ) : (
+              <ChevronRight size={16} className="text-muted-foreground hover:text-primary transition-colors" />
+            )}
+          </button>
+
+          {/* Toggle Analysis Panel Button */}
+          {activeTab === 'analysis' && (
+            <button
+              onClick={() => setShowAnalysisPanel(!showAnalysisPanel)}
+              className="absolute top-4 right-4 z-10 p-1.5 rounded-lg border border-border hover:border-primary/50 hover:bg-secondary/50 transition-all duration-200 glass"
+              title={showAnalysisPanel ? 'Masquer l\'analyse' : 'Afficher l\'analyse'}
+            >
+              {showAnalysisPanel ? (
+                <ChevronRight size={16} className="text-muted-foreground hover:text-primary transition-colors" />
+              ) : (
+                <ChevronLeft size={16} className="text-muted-foreground hover:text-primary transition-colors" />
+              )}
+            </button>
+          )}
+
+          {/* Graph content */}
+          <div className="flex-1 relative">
           {loading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-3">
@@ -119,10 +153,10 @@ export default function Index() {
               />
             </>
           )}
-          
-          {/* Node limit slider */}
-          <div className="absolute bottom-4 left-4 glass rounded-lg px-4 py-2 flex items-center gap-3">
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Nœuds</span>
+
+            {/* Node limit slider */}
+            <div className="absolute bottom-6 right-6 glass rounded-lg px-4 py-2 flex items-center gap-3 z-10">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Nœuds max</span>
             <input
               type="range"
               min={50}
@@ -131,12 +165,13 @@ export default function Index() {
               onChange={(e) => setNodeLimit(Number(e.target.value))}
               className="w-32 accent-primary"
             />
-            <span className="text-xs font-mono text-primary w-10">{nodeLimit}</span>
+            <span className="text-xs font-mono text-primary w-10 text-right">{nodeLimit}</span>
+            </div>
           </div>
         </div>
 
         {/* Right panel: Analysis */}
-        {activeTab === 'analysis' && (
+        {activeTab === 'analysis' && showAnalysisPanel && (
           <div className="w-80 border-l border-border flex-shrink-0">
             <AnalysisPanel
               nodes={displayNodes}

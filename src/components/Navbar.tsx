@@ -8,7 +8,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ activeTab, onTabChange, onFileUpload }: NavbarProps) {
-  const [isLight, setIsLight] = useState(false);
+  const [isLight, setIsLight] = useState(true);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', isLight);
