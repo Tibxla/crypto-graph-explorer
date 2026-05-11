@@ -1,0 +1,100 @@
+% sections/description.tex
+% Phase 9: Description du projet et objectifs (RAPP-03)
+
+\section{Description du projet et objectifs}
+\label{sec:description}
+
+\subsection{Donn\'ees utilis\'ees}
+\label{sec:description_donnees}
+
+Le jeu de donn\'ees utilis\'e dans cette \'etude provient de la table publique
+\texttt{crypto\_polygon\allowbreak .transactions} h\'eberg\'ee sur Google
+BigQuery~\cite{bigquery_public}. Les transactions ont \'et\'e filtr\'ees pour ne
+retenir que les transferts du jeton WETH (Wrapped Ether), identifi\'e par
+l'adresse de contrat \texttt{0x7ceB23fD6bC0adD59E62\allowbreak ac25578270cFf1b9f619}~\cite{weth_polygon}, sur la
+seule journ\'ee du 5 ao\^ut 2024. Le fichier r\'esultant,
+\texttt{polygon\_weth\_crash\_2024-08-05.csv}, contient 401\,709 transactions
+pour un volume total de 74\,Mo. Le Tableau~\ref{tab:dataset} r\'esume les
+caract\'eristiques principales du jeu de donn\'ees.
+
+\begin{table}[H]
+\centering
+\caption{Caract\'eristiques du jeu de donn\'ees WETH Polygon.}
+\label{tab:dataset}
+\begin{tabular}{ll}
+\toprule
+Propri\'et\'e & Valeur \\
+\midrule
+Source & Google BigQuery (\texttt{crypto\_polygon}) \\
+Token & WETH (Wrapped Ether) \\
+Blockchain & Polygon PoS \\
+Date & 5 ao\^ut 2024 \\
+Transactions & 401\,709 \\
+Colonnes & \texttt{transaction\_hash}, \texttt{chrono}, \texttt{source}, \texttt{target}, \texttt{weight} \\
+Taille & 74\,Mo \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Chaque enregistrement du fichier CSV est d\'ecrit par cinq colonnes~:
+\texttt{transaction\_hash}, l'identifiant unique de la transaction sur la
+blockchain Polygon~; \texttt{chrono}, l'horodatage Unix (nombre de secondes
+depuis l'epoch)~; \texttt{source}, l'adresse Ethereum du portefeuille
+\'emetteur~; \texttt{target}, l'adresse Ethereum du portefeuille r\'ecepteur~;
+et \texttt{weight}, le montant en WETH transf\'er\'e.
+
+\subsection{Questions de recherche}
+\label{sec:description_rq}
+
+Le projet s'organise autour de six questions de recherche.
+
+\paragraph{RQ1 --- Analyse de la topologie du r\'eseau.}
+Examiner la structure topologique globale du r\'eseau~: distribution des degr\'es
+entrants et sortants, densit\'e, composantes faiblement et fortement connexes,
+diam\`etre et longueur moyenne des chemins. D\'eterminer si le r\'eseau pr\'esente
+des propri\'et\'es de type sans \'echelle, caract\'eristiques des r\'eseaux o\`u
+quelques n\oe{}uds concentrent un nombre disproportionn\'e de connexions.
+
+\paragraph{RQ2 --- Analyse de la centralit\'e.}
+Identifier les n\oe{}uds les plus influents du r\'eseau par quatre mesures de
+centralit\'e~: degr\'e, \textit{betweenness}, \textit{closeness} et PageRank.
+Comparer les classements obtenus par chaque mesure et interpr\'eter les r\^oles
+des acteurs centraux dans l'\'ecosyst\`eme DeFi (routeurs DEX, ponts
+inter-cha\^ines, coffres-forts de protocoles).
+
+\paragraph{RQ3 --- D\'etection de communaut\'es.}
+Appliquer l'algorithme de Louvain pour r\'ev\'eler la structure communautaire
+sous-jacente du r\'eseau. Mesurer la modularit\'e obtenue et analyser la
+distribution des tailles de communaut\'es. \'Evaluer le degr\'e de
+compartimentalisation du r\'eseau et ses implications pour la propagation des
+chocs financiers.
+
+\paragraph{RQ4 --- Dynamique temporelle.}
+D\'ecouper la journ\'ee du 5 ao\^ut 2024 en fen\^etres horaires et suivre
+l'\'evolution des m\'etriques du r\'eseau au cours du temps. Identifier les pics
+d'activit\'e en nombre de transactions et en volume WETH, puis les relier au
+contexte financier mondial (sessions de march\'e asiatique, europ\'eenne et
+am\'ericaine).
+
+\paragraph{RQ5 --- Propri\'et\'es petit-monde.}
+\'Evaluer le coefficient de clustering et la longueur moyenne des chemins du
+r\'eseau. Comparer ces m\'etriques au mod\`ele al\'eatoire d'Erd\H{o}s-R\'enyi
+calibr\'e avec les m\^emes param\`etres ($n$ et $p$). Quantifier le caract\`ere
+petit-monde par le coefficient $\sigma$ de Humphries et Gurney.
+
+\paragraph{RQ6 --- Analyse des flux pond\'er\'es.}
+Analyser la distribution des volumes WETH \'echang\'es sur les ar\^etes du
+r\'eseau. Quantifier la concentration des flux par le coefficient de Gini et la
+courbe de Lorenz. Identifier les \textit{whales} (portefeuilles r\'ealisant des
+transferts de tr\`es grande valeur) et caract\'eriser leur r\^ole dans le r\'eseau.
+
+\subsection{Pr\'etraitement des donn\'ees}
+\label{sec:description_preprocessing}
+
+Le pr\'etraitement comprend trois \'etapes. D'abord, les ar\^etes multiples
+entre une m\^eme paire d'adresses sont agr\'eg\'ees par somme des poids, avec
+un attribut \texttt{tx\_count} conservant le nombre de transactions. Ensuite,
+un graphe orient\'e pond\'er\'e (DiGraph) de 12\,880 sommets et 39\,999 ar\^etes
+est construit avec NetworkX~; une version non orient\'ee (33\,827 ar\^etes) est
+d\'eriv\'ee pour RQ3 et RQ5. Enfin, un filtrage \textit{dust} \`a $10^{-12}$
+WETH supprime 1\,598 ar\^etes (4\,\%) de bruit num\'erique pour RQ6.

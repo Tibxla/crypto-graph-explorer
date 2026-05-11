@@ -1,0 +1,161 @@
+% annexes/execution.tex
+% Exemple d'execution du projet - Analyse du reseau WETH Polygon
+
+\section{Exemple d'ex\'ecution du projet}
+\label{ann:execution}
+
+Cette annexe pr\'esente les commandes n\'ecessaires pour reproduire l'ensemble des analyses et compiler le rapport, accompagn\'ees des sorties console attendues.
+
+% ---- Installation des dependances ----
+
+\subsection{Installation des d\'ependances}
+
+L'installation des biblioth\`eques Python s'effectue via \texttt{pip}~:
+
+\begin{lstlisting}[language={}, numbers=none, caption={Installation des d\'ependances Python}]
+$ pip install networkx~=3.4.2 matplotlib~=3.9.4 pandas~=2.2.3 \
+    numpy~=2.1 scipy~=1.14 powerlaw~=2.0.0
+\end{lstlisting}
+
+Un fichier \texttt{requirements.txt} est \'egalement fourni \`a la racine du projet pour simplifier l'installation~:
+
+\begin{lstlisting}[language={}, numbers=none, caption={Installation via requirements.txt}]
+$ pip install -r requirements.txt
+\end{lstlisting}
+
+% ---- Execution des analyses ----
+
+\subsection{Ex\'ecution des analyses}
+
+Le script orchestrateur \texttt{run\_all.py} lance s\'equentiellement les six analyses de questions de recherche ainsi que les cinq analyses compl\'ementaires (annexe \S\ref{sec:complementaires}). Le fichier CSV \texttt{polygon\_weth\_crash\_2024-08-05.csv} (74~Mo) doit \^etre pr\'esent \`a la racine du projet.
+
+\begin{lstlisting}[language={}, numbers=none, caption={Lancement de l'orchestrateur}]
+$ python run_all.py
+\end{lstlisting}
+
+La sortie console attendue est la suivante~:
+
+\begin{lstlisting}[language={}, numbers=none, caption={Sortie console de run\_all.py (extraits, ex\'ecution r\'eelle)}]
+============================================================
+  Analyse du reseau WETH Polygon - Lundi Noir (5 aout 2024)
+============================================================
+
+Chargement des donnees...
+Graphe construit: 12880 noeuds, 39999 aretes
+Version non-orientee: 33827 aretes
+
+============================================================
+  RQ1 - Topologie
+============================================================
+  Noeuds:      12 880      Aretes:      39 999
+  Densite:     0.000241    Degre moyen: 3.11
+  Composantes WCC: 95   Geante: 12 538 (97.3%)
+  Composantes SCC: 7 632 Geante:  5 206 (40.4%)
+  Diametre (SCC):           15
+  Longueur moyenne chemins: 3.970
+Figure sauvegardee: rq1_degree_distribution.png
+Figure sauvegardee: rq1_components.png
+Figure sauvegardee: rq1_hub_network.png
+
+============================================================
+  RQ2 - Centralite
+============================================================
+  Top degre entrant  : 0xe50fa9...8128c8  (0.0672)
+  Top degre sortant  : 0x281805...cb7116  (0.1555)
+  Top betweenness    : 0x281805...cb7116  (0.0816)
+  Top closeness      : 0x86f1d8...e618e0  (0.4287)
+  Top PageRank       : 0xe50fa9...8128c8  (0.0425)
+  Spearman degre/PR:        0.6061
+  Spearman degre/betw:      0.5144
+  Spearman closeness/PR:    0.0080
+Figures: rq2_centrality_{barplots,comparison,network}.png
+
+============================================================
+  RQ3 - Communautes
+============================================================
+  Louvain: 174 communautes detectees
+  Top 5 tailles: 2981, 2414, 2338, 1542, 1381 noeuds
+  Modularite Q = 0.6445  (structure significative)
+  Singletons: 3   Communautes >= 10: 26
+Figures: rq3_{communities,community_sizes}.png
+
+============================================================
+  RQ4 - Temporel
+============================================================
+  24 fenetres horaires UTC analysees
+  Pic transactions: 13h UTC  (28 146 tx)
+  Pic volume WETH:  01h UTC  (21 517.99 WETH)
+  Pic aretes:       01h UTC  (5 791 aretes)
+Figures: rq4_{temporal_evolution,heatmap}.png
+
+============================================================
+  RQ5 - Petit-monde
+============================================================
+  Transitivite (C):  0.029715
+  C aleatoire (ER):  0.000381
+  Longueur moy (L):  3.9700      L aleatoire: 5.9034
+  Sigma = (C/Cr)/(L/Lr) = 115.90
+  -> Proprietes petit-monde confirmees
+Figures: rq5_{small_world_comparison,clustering_distribution,clustering_network}.png
+
+============================================================
+  RQ6 - Flux ponderes
+============================================================
+  Coefficient de Gini: 0.9780
+  Top-10 whales:       24.4% du volume total
+  Sous-graphe whales:  43 noeuds, 50 aretes
+Figures: rq6_{weight_distribution,lorenz_curve,whale_network}.png
+
+============================================================
+  Analyses complementaires
+============================================================
+LCC: 12 538 noeuds, 33 576 aretes
+
+[1] Ponts (Tarjan)
+    5 890 ponts detectes (17.54% des aretes)
+    Degre moyen aux extremites: 869.06
+[2] Decomposition en k-coeurs (Seidman)
+    k_max = 37  (111 noeuds dans le 37-coeur)
+    2-coeur: 6 652 noeuds (53.1% de la LCC)
+[3] Similarite topologique (Jaccard) sur top 50 hubs
+    Paire 0x506c64.../0xf08650...:  J = 1.0000  (265 voisins identiques)
+    Mediane des J non nuls: 0.1071
+[4] Propagation SI depuis le hub principal (degre 2004)
+    p = 0.10 : 78.7% de la LCC apres 15 pas
+    p = 0.30 : 99.1% de la LCC apres 15 pas
+    p = 0.50 : 100.0% de la LCC apres 15 pas
+[5] Robustesse par suppression cascade (100 noeuds retires)
+    Aleatoire   : LCC perd  0.90 %
+    Top degre   : LCC perd 56.67 %
+    Top betweenness : LCC perd 58.35 %
+Figures: extra_{bridges_network,kcore_distribution,jaccard_topk,si_propagation,robustness_cascade}.png
+
+============================================================
+  Termine en 652.3 secondes
+============================================================
+\end{lstlisting}
+
+\`A l'issue de l'ex\'ecution, les 21 fichiers PNG sont g\'en\'er\'es dans le r\'epertoire \texttt{figures/} \`a une r\'esolution de 200~DPI~: 16 figures pour les six RQ et 5 figures pour les analyses compl\'ementaires (annexe \S\ref{sec:complementaires}). La dur\'ee totale d'ex\'ecution est d'environ 11 minutes sur un poste de bureau standard, la moiti\'e \'etant consomm\'ee par la d\'etection des ponts ($\mathcal{O}(V+E)$ mais sur un graphe de $33\,576$ ar\^etes) et la simulation de robustesse (recalcul de la LCC \`a chaque retrait).
+
+% ---- Compilation du rapport ----
+
+\subsection{Compilation du rapport}
+
+La compilation du rapport LaTeX n\'ecessite trois passes de \texttt{pdflatex} et une passe de \texttt{biber} pour r\'esoudre correctement les r\'ef\'erences crois\'ees et la bibliographie~:
+
+\begin{lstlisting}[language={}, numbers=none, caption={S\'equence de compilation LaTeX}]
+$ cd rapport
+$ pdflatex main.tex
+$ biber main
+$ pdflatex main.tex
+$ pdflatex main.tex
+\end{lstlisting}
+
+Alternativement, l'outil \texttt{latexmk} automatise cette s\'equence en une seule commande~:
+
+\begin{lstlisting}[language={}, numbers=none, caption={Compilation automatis\'ee via latexmk}]
+$ cd rapport
+$ latexmk -pdf main.tex
+\end{lstlisting}
+
+Le fichier \texttt{main.pdf} produit contient l'int\'egralit\'e du rapport avec figures int\'egr\'ees, table des mati\`eres, bibliographie et annexes.

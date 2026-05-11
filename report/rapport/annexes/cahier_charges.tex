@@ -1,0 +1,81 @@
+% annexes/cahier_charges.tex
+% Cahier des charges du projet - Analyse du reseau WETH Polygon
+
+\section{Cahier des charges}
+\label{ann:cahier}
+
+Ce cahier des charges d\'efinit le cadre, les objectifs et les contraintes du projet d'analyse du r\'eseau de transferts WETH sur la blockchain Polygon lors du crash du 5 ao\^ut 2024.
+
+% ---- Contexte ----
+
+\subsection{Contexte}
+
+Le 5 ao\^ut 2024, surnomm\'e le \og Lundi Noir \fg{} des march\'es financiers, a \'et\'e marqu\'e par un effondrement g\'en\'eralis\'e des march\'es boursiers et des cryptomonnaies. Ce crash, d\'eclench\'e par le d\'enouement brutal du \textit{carry trade} sur le yen japonais suite \`a la hausse surprise des taux directeurs de la Banque du Japon~\cite{boj2024rate, reuters2024carrytrade}, a provoqu\'e des mouvements massifs de capitaux sur l'ensemble des r\'eseaux blockchain.
+
+Dans ce contexte, la blockchain Polygon --- solution de scalabilit\'e de couche~2 pour Ethereum --- a enregistr\'e une activit\'e exceptionnelle de transferts du token WETH (\textit{Wrapped Ether}). Le pr\'esent projet applique la th\'eorie des graphes \`a l'analyse de ce r\'eseau de transferts, en mod\'elisant chaque adresse comme un n\oe ud et chaque transfert comme une ar\^ete pond\'er\'ee par le montant en WETH.
+
+Le jeu de donn\'ees, extrait de Google BigQuery~\cite{bigquery_public}, contient 401\,709 transactions effectu\'ees sur la journ\'ee du 5 ao\^ut 2024, impliquant 12\,880 adresses uniques et 39\,999 ar\^etes agr\'eg\'ees.
+
+% ---- Objectifs ----
+
+\subsection{Objectifs}
+
+L'objectif principal est de r\'epondre \`a six questions de recherche (RQ) couvrant diff\'erents aspects de l'analyse de r\'eseaux~:
+
+\begin{itemize}
+  \item \textbf{RQ1 --- Topologie du r\'eseau}~: analyser la structure globale du graphe (distribution des degr\'es, densit\'e, composantes connexes, diam\`etre) et caract\'eriser sa topologie.
+
+  \item \textbf{RQ2 --- Centralit\'e}~: identifier les n\oe uds les plus influents du r\'eseau \`a l'aide de quatre mesures de centralit\'e (degr\'e, betweenness, closeness, PageRank).
+
+  \item \textbf{RQ3 --- Communaut\'es}~: d\'etecter les communaut\'es au sein du r\'eseau via l'algorithme de Louvain~\cite{blondel2008louvain} et \'evaluer la modularit\'e de la partition obtenue.
+
+  \item \textbf{RQ4 --- Dynamique temporelle}~: \'etudier l'\'evolution du r\'eseau au cours de la journ\'ee en d\'ecoupant les transactions par fen\^etres horaires.
+
+  \item \textbf{RQ5 --- Propri\'et\'es petit-monde}~: v\'erifier si le r\'eseau pr\'esente des propri\'et\'es de type \textit{small-world}~\cite{watts1998smallworld} en comparant ses m\'etriques \`a un graphe al\'eatoire d'Erd\H{o}s--R\'enyi~\cite{erdos1959random}.
+
+  \item \textbf{RQ6 --- Flux pond\'er\'es}~: analyser la distribution des volumes WETH transf\'er\'es, calculer le coefficient de Gini et identifier les flux dominants (\textit{whales}).
+\end{itemize}
+
+% ---- Perimetre fonctionnel ----
+
+\subsection{P\'erim\`etre fonctionnel}
+
+\paragraph{Inclus dans le p\'erim\`etre~:}
+\begin{itemize}
+  \item Analyse compl\`ete des 6 questions de recherche list\'ees ci-dessus
+  \item G\'en\'eration de 16 figures PNG haute qualit\'e (200~DPI)
+  \item R\'edaction d'un rapport LaTeX complet en fran\c{c}ais, sans limite de pages
+  \item Code Python modulaire et reproductible
+\end{itemize}
+
+\paragraph{Exclu du p\'erim\`etre~:}
+\begin{itemize}
+  \item Application web ou tableau de bord interactif
+  \item Analyse multi-jours (seule la journ\'ee du 5 ao\^ut 2024 est consid\'er\'ee)
+  \item Analyse d'autres tokens que WETH
+  \item R\'e-extraction des donn\'ees depuis BigQuery (utilisation exclusive du CSV existant)
+\end{itemize}
+
+% ---- Contraintes techniques ----
+
+\subsection{Contraintes techniques}
+
+\begin{itemize}
+  \item \textbf{Langage}~: Python~3.10+ avec les biblioth\`eques NetworkX~3.4~\cite{networkx_docs}, Matplotlib~3.9, Pandas~2.2, NumPy~2.1, SciPy~1.14
+  \item \textbf{Donn\'ees}~: fichier CSV de 74~Mo contenant 401\,709 transactions avec cinq colonnes (\texttt{transaction\_hash}, \texttt{chrono}, \texttt{source}, \texttt{target}, \texttt{weight})
+  \item \textbf{Reproductibilit\'e}~: graines al\'eatoires fix\'ees \`a 42 pour tous les algorithmes stochastiques
+  \item \textbf{Mod\'elisation}~: graphe orient\'e pond\'er\'e (DiGraph) par d\'efaut, conversion en non orient\'e pour les RQ3 et RQ5
+  \item \textbf{Template LaTeX}~: conforme au mod\`ele de l'Universit\'e Paris Nanterre (Licence MIAGE), compilation via pdfLaTeX + Biber
+  \item \textbf{Langue du rapport}~: fran\c{c}ais int\'egral avec conventions typographiques respect\'ees via le package \texttt{babel}
+\end{itemize}
+
+% ---- Livrables attendus ----
+
+\subsection{Livrables attendus}
+
+\begin{itemize}
+  \item \textbf{Rapport PDF}~: document LaTeX complet comprenant introduction, environnement de travail, description du projet, biblioth\`eques utilis\'ees, 6 sections d'analyse (RQ1--RQ6), difficult\'es rencontr\'ees, bilan, bibliographie, webographie et annexes
+  \item \textbf{Figures}~: 16 fichiers PNG \`a 200~DPI dans le r\'epertoire \texttt{figures/}, avec une trame graphique uniforme (fonds sombres pour les graphes r\'eseau, fonds clairs pour les graphiques analytiques)
+  \item \textbf{Code source Python}~: 8 modules dans \texttt{src/} (6 analyses RQ + constructeur de graphe + module de style) et un orchestrateur \texttt{run\_all.py}
+  \item \textbf{Jeu de donn\'ees}~: fichier \texttt{polygon\_weth\_crash\_2024-08-05.csv} (401\,709 transactions, 74~Mo)
+\end{itemize}

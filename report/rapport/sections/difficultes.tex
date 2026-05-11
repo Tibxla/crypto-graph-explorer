@@ -1,0 +1,43 @@
+% sections/difficultes.tex
+% Phase 10: Difficultes rencontrees (RAPP-06)
+
+\section{Difficult\'es rencontr\'ees}
+\label{sec:difficultes}
+
+Plusieurs probl\`emes techniques se sont pos\'es au cours du projet.
+
+\paragraph{1. Complexit\'e algorithmique de la centralit\'e
+d'interm\'ediarit\'e.}
+Le calcul exact de la centralit\'e d'interm\'ediarit\'e est en
+$O(|V| \cdot |E|)$, soit plusieurs heures pour notre graphe. On \'echantillonne
+\`a la place $k = 500$ sommets pivots~\cite{freeman1977centrality} (graine 42),
+ce qui ram\`ene le temps de calcul \`a quelques secondes tout en produisant un
+classement fiable.
+
+\paragraph{2. M\'etriques de chemins sur graphe d\'econnect\'e.}
+Le diam\`etre et la longueur moyenne des chemins ne sont d\'efinis que sur
+des graphes connexes. Le r\'eseau \'etant d\'econnect\'e (95 composantes
+faiblement connexes), on calcule le diam\`etre sur la plus grande SCC et la
+longueur moyenne sur la WCC par \'echantillonnage de 1\,000 paires.
+
+\paragraph{3. Filtrage des transferts n\'egligeables (\textit{dust}).}
+1\,598 ar\^etes (4\,\%) portent des volumes inf\'erieurs \`a $10^{-12}$~WETH
+--- approbations automatis\'ees, pings de protocoles, erreurs d'arrondi. Sans
+filtrage, elles gonflent artificiellement le nombre d'ar\^etes \`a volume nul
+et biaisent le Gini. On les exclut de l'analyse distributionnelle (RQ6).
+
+\paragraph{4. Conversion orient\'e/non-orient\'e pour la d\'etection de
+communaut\'es.}
+L'algorithme de Louvain~\cite{blondel2008louvain} requiert un graphe non
+orient\'e, mais le r\'eseau de transferts est orient\'e. Appliquer Louvain
+directement sur un \texttt{DiGraph} produit des r\'esultats incorrects. On
+convertit donc le graphe en \texttt{Graph} non orient\'e en agr\'egeant les
+poids (somme des volumes dans les deux sens) avant l'appel \`a
+\texttt{louvain\_communities()}.
+
+\paragraph{5. Encodage et typographie \LaTeX{} pour le fran\c{c}ais.}
+La combinaison \texttt{cleveref} + \texttt{babel french} provoque des erreurs
+de compilation (\textit{Missing} \texttt{\textbackslash endcsname}). On a
+remplac\'e les commandes \texttt{\textbackslash cref\{\}} par la syntaxe
+manuelle \texttt{section\~{}\textbackslash ref\{sec:...\}} dans l'ensemble
+du rapport.

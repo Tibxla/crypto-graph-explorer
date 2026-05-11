@@ -1,0 +1,59 @@
+% sections/introduction.tex
+% Phase 9: Introduction (RAPP-01)
+
+\section{Introduction}
+\label{sec:introduction}
+
+Le 5 ao\^ut 2024, les march\'es financiers mondiaux ont c\'ed\'e en quelques
+heures, un \'episode que la presse a appel\'e le \og Lundi Noir \fg{}. Le
+d\'eclencheur est mon\'etaire~: le 31 juillet, la Banque du Japon rel\`eve ses
+taux directeurs par surprise~\cite{boj2024rate}, ce qui force le d\'enouement
+des positions de \textit{carry trade} sur le yen. Le m\'ecanisme est connu~:
+des investisseurs empruntent en yen \`a taux quasi nul (le Japon maintient des
+taux n\'egatifs depuis 2016) pour placer ailleurs \`a rendement plus
+\'elev\'e~\cite{reuters2024carrytrade}. Quand le yen s'appr\'ecie brutalement,
+tout le monde doit d\'eboucler en m\^eme temps pour couvrir les pertes de
+change. Les ventes forc\'ees se r\'epercutent sur toutes les classes d'actifs,
+y compris la crypto~: sur Polygon, blockchain de couche~2 d'Ethereum, les
+protocoles de finance d\'ecentralis\'ee (DeFi) encaissent des vagues de
+liquidations et de transferts de panique. Sur la seule journ\'ee du 5 ao\^ut,
+plus de 401\,000 transferts du jeton WETH (Wrapped Ether) sont
+enregistr\'es sur Polygon.
+
+Ces transferts forment un r\'eseau orient\'e pond\'er\'e. Chaque adresse
+Ethereum est un sommet, chaque transfert une ar\^ete orient\'ee de l'\'emetteur
+vers le r\'ecepteur, et le montant transf\'er\'e d\'efinit le poids de l'ar\^ete.
+La th\'eorie des graphes donne des outils pour analyser ce r\'eseau~:
+topologie, acteurs centraux, structure communautaire, dynamique temporelle
+des \'echanges~\cite{newman2018networks}. C'est plus utile qu'un simple
+d\'ecompte de transactions, parce qu'on peut alors voir o\`u se concentrent
+les flux, quels protocoles servent de relais, et comment le r\'eseau se
+fragmente quand le march\'e tangue.
+
+Le rapport s'organise autour de six questions de recherche (RQ)~:
+
+\begin{enumerate}
+    \item \textbf{RQ1 --- Topologie du r\'eseau~:} analyser la structure globale
+    \`a travers la distribution des degr\'es, la densit\'e, les composantes connexes
+    et le diam\`etre du graphe.
+    \item \textbf{RQ2 --- Centralit\'e~:} identifier les n\oe{}uds les plus
+    influents par quatre mesures de centralit\'e (degr\'e, \textit{betweenness},
+    \textit{closeness}, PageRank) et interpr\'eter leurs r\^oles.
+    \item \textbf{RQ3 --- Communaut\'es~:} d\'etecter la structure communautaire
+    par l'algorithme de Louvain, mesurer la modularit\'e et analyser la
+    distribution des tailles de communaut\'es.
+    \item \textbf{RQ4 --- Dynamique temporelle~:} d\'ecouper la journ\'ee en
+    fen\^etres horaires et suivre l'\'evolution des m\'etriques du r\'eseau pour
+    identifier les pics d'activit\'e.
+    \item \textbf{RQ5 --- Propri\'et\'es petit-monde~:} \'evaluer le coefficient
+    de clustering et la longueur moyenne des chemins, puis comparer au mod\`ele
+    al\'eatoire d'Erd\H{o}s-R\'enyi.
+    \item \textbf{RQ6 --- Flux pond\'er\'es~:} analyser la distribution des
+    volumes WETH \'echang\'es, quantifier la concentration par le coefficient de
+    Gini et la courbe de Lorenz.
+\end{enumerate}
+
+L'environnement de travail et le jeu de donn\'ees sont d\'ecrits en premier,
+puis les six questions sont trait\'ees une par une (m\'ethodologie,
+r\'esultats, interpr\'etation). Le bilan revient sur ce que les six analyses
+disent ensemble, et propose quelques pistes pour aller plus loin.

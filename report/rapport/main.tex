@@ -1,0 +1,189 @@
+% =============================================================================
+% Rapport de projet Graphes et OpenData
+% Analyse du Reseau WETH sur Polygon lors du Lundi Noir du 5 aout 2024
+% Universite Paris Nanterre - Licence MIAGE
+% =============================================================================
+
+\documentclass[12pt,a4paper]{article}
+
+% --- Encodage et langue ---
+\usepackage[utf8]{inputenc}          % Encodage UTF-8 des sources
+\usepackage[T1]{fontenc}             % Encodage T1 pour les caracteres francais
+\usepackage[french]{babel}           % Conventions typographiques francaises
+\usepackage{csquotes}                % Requis par biblatex avec babel
+
+% --- Mathematiques ---
+\usepackage{amsmath, amssymb}        % Notation mathematique (Q, G, C, alpha...)
+
+% --- Figures et tableaux ---
+\usepackage{graphicx}                % Inclusion de figures (\includegraphics)
+\usepackage{float}                   % Placement [H] des flottants
+\usepackage{booktabs}                % Tableaux professionnels (\toprule, \midrule, \bottomrule)
+\usepackage{caption, subcaption}     % Personnalisation des legendes + sous-figures
+
+% --- Couleurs et code ---
+\usepackage{xcolor}                  % Definitions de couleurs
+\usepackage{listings}                % Listings de code Python
+
+% --- Mise en page ---
+\usepackage{fancyhdr}                % En-tetes et pieds de page
+\usepackage{titlesec}                % Formatage des titres de sections
+\usepackage{tocloft}                 % Formatage de la table des matieres
+\usepackage{setspace}                % Interligne
+
+% --- Geometrie (marges conformes au template Paris Nanterre) ---
+\usepackage[a4paper, left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+
+% --- Bibliographie ---
+\usepackage[backend=biber, style=numeric, sorting=none, defernumbers=true]{biblatex}
+
+% --- References croisees (charger en dernier) ---
+\usepackage[colorlinks=true, linkcolor=red, citecolor=green, urlcolor=cyan]{hyperref}
+\usepackage[french]{cleveref}        % References intelligentes (apres hyperref)
+
+% =============================================================================
+% Configuration
+% =============================================================================
+
+% Chemin des figures (depuis rapport/ vers figures/ a la racine)
+\graphicspath{{../figures/}}
+
+% Fichier de bibliographie
+\addbibresource{references.bib}
+
+% --- Palette de couleurs du projet ---
+\definecolor{primary}{HTML}{2563EB}
+\definecolor{secondary}{HTML}{7C3AED}
+\definecolor{accent}{HTML}{F59E0B}
+
+% --- Configuration des listings Python ---
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{primary}\bfseries,
+  commentstyle=\color{secondary}\itshape,
+  stringstyle=\color{accent},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  breaklines=true,
+  captionpos=b,
+  tabsize=4,
+  showstringspaces=false
+}
+
+% =============================================================================
+% Document
+% =============================================================================
+
+\begin{document}
+
+% ---- Page de garde ----
+\begin{titlepage}
+\thispagestyle{empty}
+
+\begin{flushleft}
+% Logo Paris Nanterre (placeholder si le fichier n'existe pas)
+% Placer le fichier logo_nanterre.png dans le repertoire rapport/ pour l'afficher
+\IfFileExists{logo_nanterre.png}{%
+  \includegraphics[width=7cm]{logo_nanterre.png}%
+}{%
+  \textbf{[Logo Universit\'e Paris Nanterre]}%
+}
+\end{flushleft}
+
+\vspace{1.5cm}
+
+\begin{center}
+
+{\large Licence MIAGE}
+
+\vspace{1cm}
+
+{\Large \textbf{Rapport de projet Graphes et OpenData}}
+
+\vspace{1.5cm}
+
+{\LARGE \textcolor{primary}{\textbf{Analyse du R\'eseau WETH sur Polygon\\lors du Lundi Noir du 5 ao\^ut 2024}}}
+
+\vspace{1.5cm}
+
+{\large Projet r\'ealis\'e du XX au XX}
+
+\vfill
+
+{\large \textbf{Membres du groupe}}
+
+\vspace{0.5cm}
+
+{\large
+Thibaud THOMAS-LAMOTTE --- 43009166\\
+Youcef HEMISSI --- 44008745\\
+}
+
+\vspace{1cm}
+
+{\large \textbf{D\'ep\^ot du projet}}
+
+\vspace{0.3cm}
+
+{\small \url{https://github.com/krat0s-web/crypto-graph-explorer}}
+
+\vspace{1cm}
+
+{\large Ann\'ee universitaire 2025--2026}
+
+\end{center}
+
+\end{titlepage}
+
+% ---- Table des matieres ----
+\newpage
+\tableofcontents
+
+% ---- Corps du rapport ----
+\newpage
+\input{sections/introduction}
+\clearpage
+\input{sections/environnement}
+\clearpage
+\input{sections/description}
+\clearpage
+\input{sections/bibliotheques}
+\clearpage
+\input{sections/travail_realise}
+\clearpage
+\input{sections/rq1}
+\clearpage
+\input{sections/rq2}
+\clearpage
+\input{sections/rq3}
+\clearpage
+\input{sections/rq4}
+\clearpage
+\input{sections/rq5}
+\clearpage
+\input{sections/rq6}
+\clearpage
+\input{sections/analyses_complementaires}
+\clearpage
+\input{sections/difficultes}
+\clearpage
+\input{sections/bilan}
+
+%% Bibliographie et Webographie
+\clearpage
+\printbibliography[title={Bibliographie}, notkeyword=web]
+\clearpage
+\printbibliography[title={Webographie}, keyword=web]
+
+%% Annexes
+\clearpage
+\appendix
+\input{annexes/cahier_charges}
+\clearpage
+\input{annexes/execution}
+\clearpage
+\input{annexes/manuel}
+
+\end{document}

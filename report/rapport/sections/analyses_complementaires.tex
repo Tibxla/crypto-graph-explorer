@@ -1,0 +1,169 @@
+% sections/analyses_complementaires.tex
+% Cinq analyses additionnelles inspirees du prototype interactif
+
+\section{Analyses compl\'ementaires}
+\label{sec:complementaires}
+
+Le prototype interactif d\'evelopp\'e en parall\`ele du rapport, accessible en ligne \`a l'adresse \url{https://crypto-graph-explorer.vercel.app}~\cite{cryptographexplorer_web}, expose cinq analyses absentes des six questions de recherche initiales. Trois d'entre elles testent une forme de \emph{vuln\'erabilit\'e} du r\'eseau~: les ponts, la d\'ecomposition en k-c\oe{}urs, et la suppression en cascade. Les deux autres regardent ce qui se \emph{propage} \`a travers le graphe~: la similarit\'e topologique entre hubs, et un mod\`ele \'epid\'emique SI. Toutes les valeurs report\'ees ici proviennent du m\^eme jeu de donn\'ees que les RQ pr\'ec\'edentes et sont reproductibles via le script \texttt{src/extras\_analyses.py}.
+
+\subsection{Ponts critiques}
+\label{sec:complementaires_ponts}
+
+Un \textbf{pont} est une ar\^ete dont la suppression d\'econnecte le graphe~\cite{tarjan1974bridges}. Sa pr\'esence signale un point de passage unique entre deux r\'egions du r\'eseau~: si l'ar\^ete dispara\^it, aucun chemin alternatif ne subsiste. Le calcul est effectu\'e par l'algorithme lin\'eaire de Tarjan, en $\mathcal{O}(V + E)$ sur la version non orient\'ee de la LCC.
+
+Sur les $33\,576$ ar\^etes de la LCC, $\mathbf{5\,890}$ sont des ponts, soit $\mathbf{17{,}54\,\%}$. Le degr\'e moyen des extr\'emit\'es de ponts vaut $869$ (m\'ediane $547$), un ordre de grandeur sup\'erieur \`a la moyenne du graphe ($\bar{d} = 3{,}11$ rapport\'ee en RQ1). Cette concentration confirme que les ponts ne relient pas des n\oe{}uds p\'eriph\'eriques mais des hubs eux-m\^emes connect\'es \`a une masse de feuilles. Couper un pont d\'etache typiquement une \'etoile de petites adresses gravitant autour d'un wallet plus actif.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{extra_bridges_network.png}
+  \caption{Sous-graphe induit par les 80 n\oe{}uds de plus fort degr\'e dans la LCC. Les ar\^etes en rouge sont les ponts d\'etect\'es par l'algorithme de Tarjan~; leur suppression isolerait au moins un n\oe{}ud du reste du sous-graphe. La pr\'esence de ponts entre hubs r\'ev\`ele que m\^eme la zone dense du r\'eseau pr\'esente des points de passage uniques.}
+  \label{fig:extra_bridges}
+\end{figure}
+
+Ce r\'esultat compl\`ete la lecture topologique de RQ1. La densit\'e globale faible et la structure hub-and-spoke laissaient pr\'evoir une fragilit\'e locale~: les ponts la quantifient. Pr\`es d'une ar\^ete sur cinq tient \`a elle seule la connexit\'e d'un voisinage. C'est coh\'erent avec la pr\'esence d'adresses pendantes (n\oe{}uds de degr\'e $1$) qui ne disposent que d'une seule contrepartie d'\'echange.
+
+\subsection{D\'ecomposition en k-c\oe{}urs}
+\label{sec:complementaires_kcore}
+
+La d\'ecomposition en k-c\oe{}urs de Seidman~\cite{seidman1983kcore} retire it\'erativement les n\oe{}uds de degr\'e inf\'erieur \`a $k$ jusqu'\`a obtenir un sous-graphe stable. La \emph{coreness} d'un n\oe{}ud est le plus grand $k$ tel qu'il appartient encore au sous-graphe \`a cette \'etape. Cette d\'ecomposition r\'ev\`ele une organisation en pelure d'oignon~: couches p\'eriph\'eriques pour les coreness faibles, c\oe{}ur dense pour les valeurs \'elev\'ees.
+
+Sur la LCC du r\'eseau WETH, la coreness maximale atteint $k_{\max} = \mathbf{37}$ et le $37$-c\oe{}ur regroupe $111$ n\oe{}uds. Le $2$-c\oe{}ur (n\oe{}uds appartenant \`a au moins un cycle) compte $6\,652$ n\oe{}uds, soit $53{,}1\,\%$ de la LCC. L'autre moiti\'e a une coreness nulle ou \'egale \`a $1$~: ce sont les feuilles et les chemins isol\'es vus en RQ1.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{extra_kcore_distribution.png}
+  \caption{Distribution des coreness sur la LCC (\'echelle logarithmique). La majorit\'e des n\oe{}uds tombent dans les couches externes ($k = 0$ ou $1$), tandis qu'un noyau dense persiste jusqu'\`a $k = 37$. Les $111$ n\oe{}uds du $37$-c\oe{}ur forment le sous-graphe maximal o\`u chaque sommet poss\`ede au moins $37$ voisins dans ce sous-graphe.}
+  \label{fig:extra_kcore}
+\end{figure}
+
+Le $37$-c\oe{}ur correspond probablement \`a un anneau de routeurs DEX et de protocoles de pr\^et qui s'\'echangent en permanence du WETH (les hubs identifi\'es en RQ2). C'est l'\'echelle qui survivrait \`a une crise de liquidit\'e majeure~: ce noyau, par construction, reste connect\'e tant que chacun de ses membres conserve $37$ contreparties internes. La m\^eme observation se lit dans RQ5~: ce noyau dense fournit le substrat des chemins courts.
+
+\subsection{Similarit\'e topologique entre hubs}
+\label{sec:complementaires_jaccard}
+
+Deux n\oe{}uds qui partagent leurs voisins se comportent souvent de mani\`ere \'equivalente. Le coefficient de Jaccard~\cite{jaccard1901} mesure ce chevauchement~:
+\begin{equation}
+J(u, v) = \frac{|N(u) \cap N(v)|}{|N(u) \cup N(v)|}
+\label{eq:jaccard}
+\end{equation}
+o\`u $N(u)$ d\'esigne le voisinage de $u$ dans le graphe non orient\'e. On obtient $J = 1$ lorsque les deux n\oe{}uds ont exactement les m\^emes voisins, $J = 0$ lorsqu'aucun voisin n'est commun.
+
+L'indice est calcul\'e sur les $50$ n\oe{}uds de plus grand degr\'e, soit $1\,225$ paires. $1\,047$ paires ($85{,}5\,\%$) ont $J > 0$, m\'ediane $0{,}107$. Le tableau~\ref{tab:extra_jaccard} liste les cinq paires les plus similaires.
+
+\begin{table}[H]
+\centering
+\caption{Top 5 des paires de hubs par coefficient de Jaccard sur la LCC. La premi\`ere paire ($J = 1$) partage int\'egralement ses $265$ voisins~: les deux adresses sont topologiquement indiscernables.}
+\label{tab:extra_jaccard}
+\begin{tabular}{lrl}
+\toprule
+Paire d'adresses (tronqu\'ees) & $J$ & Voisins communs \\
+\midrule
+\texttt{0x506c64\dots f7d14d} / \texttt{0xf08650\dots 2e3d52} & $1{,}0000$ & $265$ \\
+\texttt{0x19cc01\dots f7f391} / \texttt{0x03e14b\dots a08250} & $0{,}5708$ & $133$ \\
+\texttt{0xa8376f\dots eed86d} / \texttt{0x4e3288\dots 5d92bf} & $0{,}4874$ & $174$ \\
+\texttt{0xd396e3\dots a56beb} / \texttt{0x9d9d70\dots b5ab47} & $0{,}4511$ & $203$ \\
+\texttt{0x853ee4\dots 1f670d} / \texttt{0xc4913a\dots 406371} & $0{,}4315$ & $189$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{extra_jaccard_topk.png}
+  \caption{\`A gauche~: distribution des coefficients de Jaccard non nuls sur les paires de top hubs. \`A droite~: les dix paires les plus similaires. La paire de t\^ete a un Jaccard de $1{,}0$, c'est-\`a-dire que les deux adresses ont exactement le m\^eme ensemble de contreparties.}
+  \label{fig:extra_jaccard}
+\end{figure}
+
+La paire $J = 1$ est l'observation la plus int\'eressante. Deux adresses distinctes ($\texttt{0x506c64\dots}$ et $\texttt{0xf08650\dots}$) interagissent avec exactement le m\^eme ensemble de $265$ contreparties. Le sc\'enario le plus plausible est celui d'un m\^eme acteur op\'erant via deux wallets jumeaux qui re\c{c}oivent les m\^emes flux. La table de centralit\'e de RQ2 traitait ces deux n\oe{}uds comme deux hubs s\'epar\'es~; l'analyse de similarit\'e les recolle. Plus largement, la pr\'esence de $4$ autres paires \`a $J > 0{,}43$ sugg\`ere qu'une partie de la diversit\'e apparente des hubs r\'esulte d'un d\'edoublement op\'erationnel et non d'une r\'eelle pluralit\'e d'acteurs.
+
+\subsection{Propagation \'epid\'emique}
+\label{sec:complementaires_si}
+
+Pour quantifier la vitesse de diffusion d'un choc, on simule un mod\`ele \textbf{Susceptible-Infected} (SI)~\cite{newman2002epidemics} sur la LCC non orient\'ee. \`A chaque pas de temps, un n\oe{}ud infect\'e contamine chacun de ses voisins sains avec probabilit\'e $p$. L'\'etat \og infect\'e \fg{} est absorbant~: une fois atteint, le n\oe{}ud reste actif. La source est le hub de plus grand degr\'e (l'adresse \texttt{0x281805\dots cb7116}, degr\'e $2\,004$). Trois r\'egimes sont test\'es ($p \in \{0{,}10\,;\, 0{,}30\,;\, 0{,}50\}$), chacun moyenn\'e sur $20$ r\'ealisations avec graines $42, 43, \ldots, 61$.
+
+\begin{table}[H]
+\centering
+\caption{Port\'ee finale apr\`es $15$ pas de simulation SI, depuis le hub principal de la LCC, moyenn\'ee sur $20$ r\'ealisations.}
+\label{tab:extra_si}
+\begin{tabular}{ccc}
+\toprule
+Probabilit\'e $p$ & N\oe{}uds atteints & $\%$ de la LCC \\
+\midrule
+$0{,}10$ & $9\,865$ & $78{,}7\,\%$ \\
+$0{,}30$ & $12\,416$ & $99{,}0\,\%$ \\
+$0{,}50$ & $12\,535$ & $100{,}0\,\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{extra_si_propagation.png}
+  \caption{Courbes d'infection moyenne (sur $20$ runs) pour trois probabilit\'es de transmission. La saturation est atteinte en $4$ \`a $6$ \'etapes pour $p \geq 0{,}30$~: la quasi-totalit\'e de la LCC est touch\'ee en moins de $7$ sauts depuis le hub principal.}
+  \label{fig:extra_si}
+\end{figure}
+
+Pour $p = 0{,}30$, $99\,\%$ de la LCC est atteinte en six pas. C'est la traduction op\'erationnelle des propri\'et\'es petit-monde de RQ5~: $\sigma = 115{,}90$ avec une longueur moyenne de $3{,}97$ sauts, on s'attend \`a ce qu'une diffusion stochastique balaye presque tout le r\'eseau en moins de dix \'etapes. M\^eme \`a $p = 0{,}10$, qui mod\'elise un sc\'enario \`a faible contagion, $78{,}7\,\%$ des n\oe{}uds finissent atteints. Le r\'eseau n'a pas de zone isol\'ee~: une pression initi\'ee sur un hub se propage int\'egralement, ce qui est compatible avec le m\'ecanisme de cascade observ\'e durant le crash du $5$ ao\^ut.
+
+\subsection{Robustesse par suppression cascade}
+\label{sec:complementaires_robustness}
+
+Albert, Jeong et Barab\'asi~\cite{albert2000attacktolerance} ont montr\'e que les r\'eseaux sans \'echelle r\'esistent bien aux pannes al\'eatoires mais s'effondrent rapidement sous attaque cibl\'ee. On le v\'erifie ici en retirant $100$ n\oe{}uds dans trois ordres distincts et en suivant la taille relative de la LCC.
+
+\begin{itemize}
+  \item \textbf{Al\'eatoire}~: $100$ n\oe{}uds tir\'es uniform\'ement (graine $42$). Baseline neutre.
+  \item \textbf{Top degr\'e}~: $100$ n\oe{}uds de plus grand degr\'e, retir\'es dans l'ordre d\'ecroissant.
+  \item \textbf{Top betweenness}~: $100$ n\oe{}uds de plus grande interm\'ediarit\'e, retir\'es dans l'ordre d\'ecroissant. La betweenness est calcul\'ee par \'echantillonnage ($k = 500$) pour rester tractable.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Effet d'une suppression cascade de $100$ n\oe{}uds sur la taille de la LCC.}
+\label{tab:extra_robustness}
+\begin{tabular}{lr}
+\toprule
+Strat\'egie de retrait & Perte de LCC \\
+\midrule
+Al\'eatoire (baseline) & $0{,}90\,\%$ \\
+Top degr\'e & $\mathbf{56{,}67\,\%}$ \\
+Top betweenness & $\mathbf{58{,}35\,\%}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{extra_robustness_cascade.png}
+  \caption{Taille relative de la LCC (en \% de sa taille initiale) en fonction du nombre de n\oe{}uds retir\'es selon trois strat\'egies. La courbe al\'eatoire reste presque plate, les deux courbes cibl\'ees plongent rapidement~: c'est la signature d'un r\'eseau sans \'echelle au sens d'Albert et Barab\'asi.}
+  \label{fig:extra_robustness}
+\end{figure}
+
+Le contraste est marqu\'e. Retirer $100$ n\oe{}uds au hasard co\^ute moins de $1\,\%$ de la LCC~: l'\'ecrasante majorit\'e des n\oe{}uds tir\'es sont des feuilles ou des n\oe{}uds de coreness faible vus en \S\ref{sec:complementaires_kcore}. Retirer les m\^emes $100$ par betweenness d\'ecroissante d\'etruit $58\,\%$ de la LCC~: les hubs jouent leur r\^ole de ponts structurels, leur retrait fragmente le graphe. L'ordre par degr\'e est presque aussi destructeur ($56{,}67\,\%$), ce qui est coh\'erent avec la corr\'elation degr\'e/betweenness de $0{,}514$ rapport\'ee en RQ2.
+
+Cette asym\'etrie a une lecture concr\`ete dans le contexte du crash~: une d\'efaillance accidentelle (par exemple un wallet pendant qui cesse de transiger) laisse le r\'eseau intact, tandis qu'une attaque cibl\'ee sur les routeurs DEX dominants suffit \`a couper le r\'eseau en deux. Lors du $5$ ao\^ut, ce sont pr\'ecis\'ement ces routeurs qui ont absorb\'e la pression de liquidation~: leur saturation a produit, de fait, l'effet d'une suppression cibl\'ee temporaire.
+
+\subsection{Synth\`ese}
+\label{sec:complementaires_synthese}
+
+Les cinq analyses convergent sur un point d\'ej\`a esquiss\'e dans les RQ pr\'ec\'edentes mais quantifi\'e ici sous un angle diff\'erent~: le r\'eseau WETH est \`a la fois fragile localement et r\'esistant globalement, tant qu'on ne touche pas \`a son noyau.
+
+\begin{table}[H]
+\centering
+\caption{R\'ecapitulatif num\'erique des analyses compl\'ementaires et liens avec les RQ.}
+\label{tab:extra_synthese}
+\begin{tabular}{llr}
+\toprule
+Analyse & R\'esultat principal & Lien avec RQ \\
+\midrule
+Ponts & $5\,890$ ponts ($17{,}54\,\%$ des ar\^etes) & RQ1, RQ5 \\
+$k$-c\oe{}urs & $k_{\max} = 37$, $111$ n\oe{}uds dans le noyau & RQ1, RQ2 \\
+Jaccard & $1$ paire $J = 1$ sur top 50 hubs & RQ2 \\
+SI ($p=0{,}30$) & $99\,\%$ de la LCC en $6$ pas & RQ5 \\
+Cascade top degr\'e & $-56{,}7\,\%$ de LCC en $100$ retraits & RQ1, RQ2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La fragilit\'e locale appara\^it dans les ponts ($17{,}54\,\%$ des ar\^etes) et la suppression cascade~: une fraction tr\`es minoritaire du r\'eseau, bien choisie, suffit \`a le couper. La r\'esistance globale tient au $37$-c\oe{}ur~: tant que ces $111$ adresses restent op\'erationnelles, la connectivit\'e g\'en\'erale persiste. Et la propagation SI confirme ce que RQ5 sugg\'erait~: depuis n'importe quel hub, un signal traverse la quasi-totalit\'e du r\'eseau en quelques sauts. La similarit\'e \`a $J = 1$ rappelle enfin que certains hubs apparemment distincts dans les classements de centralit\'e sont en r\'ealit\'e des doublons op\'erationnels d'un m\^eme acteur.
+
+Ces cinq analyses ne sont pas n\'ecessaires \`a la d\'emonstration des six RQ initiales, mais elles les \'eclairent sous un autre angle. Le prototype web associ\'e (\url{https://crypto-graph-explorer.vercel.app}) permet de les explorer interactivement~: changement de la source du SI, choix du nombre de n\oe{}uds \`a retirer, comparaison \`a la vol\'ee.

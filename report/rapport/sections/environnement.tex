@@ -1,0 +1,33 @@
+% sections/environnement.tex
+% Phase 9: Environnement de travail (RAPP-02)
+
+\section{Environnement de travail}
+\label{sec:environnement}
+
+Voici l'environnement mat\'eriel et logiciel utilis\'e pour le projet.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Environnement de d\'eveloppement.}
+\label{tab:environnement}
+\begin{tabular}{p{4cm}lp{6cm}}
+\toprule
+\textbf{Outil} & \textbf{Version} & \textbf{R\^ole} \\
+\midrule
+Syst\`eme d'exploitation & Windows~11 & Plateforme de d\'eveloppement \\
+Python & 3.10+ & Langage principal d'analyse \\
+pip & 24.x & Gestionnaire de paquets \\
+Git & 2.x & Contr\^ole de version \\
+VS Code & 1.9x & \'Editeur de code \\
+\TeX{} Live & 2024 & Distribution \LaTeX{} \\
+pdf\LaTeX{} & (inclus) & Compilation du rapport \\
+Biber & (inclus) & Backend bibliographique \\
+latexmk & (inclus) & Automatisation compilation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Python a \'et\'e choisi pour ses biblioth\`eques scientifiques (NumPy, Pandas, NetworkX, Matplotlib). Les d\'ependances s'installent via \texttt{pip install -r requirements.txt}.
+
+Le rapport est compil\'e avec pdf\LaTeX{}, plus simple que Lua\LaTeX{} ou Xe\LaTeX{} et suffisant pour un document en fran\c{c}ais avec l'encodage T1. \TeX{} Live fournit tous les paquets n\'ecessaires, et \texttt{latexmk} automatise les passes de compilation.

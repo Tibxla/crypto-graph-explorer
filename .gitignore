@@ -12,11 +12,40 @@ dist
 dist-ssr
 *.local
 
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Test coverage
+coverage
+
+# Caches
+*.tsbuildinfo
+.vite
+
+# Report sub-project: build LaTeX (régénérés à la compilation)
+# Le CSV (71 Mo) est volontairement commité pour reproductibilité 100% offline
+report/rapport/main.aux
+report/rapport/main.bbl
+report/rapport/main.bcf
+report/rapport/main.blg
+report/rapport/main.log
+report/rapport/main.out
+report/rapport/main.run.xml
+report/rapport/main.toc
+report/rapport/*.fdb_latexmk
+report/rapport/*.fls
+report/src/__pycache__/
+report/__pycache__/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj

@@ -1,0 +1,108 @@
+% annexes/manuel.tex
+% Manuel utilisateur - Analyse du reseau WETH Polygon
+
+\section{Manuel utilisateur}
+\label{ann:manuel}
+
+Ce manuel d\'ecrit les pr\'erequis, la proc\'edure d'installation, les commandes d'utilisation et la structure des fichiers du projet.
+
+% ---- Acces en ligne ----
+
+\subsection{Acc\`es en ligne au prototype interactif}
+
+Pour explorer les analyses sans rien installer, le prototype web est d\'eploy\'e \`a l'adresse~:
+
+\begin{center}
+\large\url{https://crypto-graph-explorer.vercel.app}
+\end{center}
+
+Cette version contient les six questions de recherche et les cinq analyses compl\'ementaires de l'annexe~\S\ref{sec:complementaires}, avec visualisation D3.js du r\'eseau, panneau de statistiques en temps r\'eel et simulations interactives (suppression de n\oe{}uds, propagation SI). Les chiffres exacts du rapport (Gini, $\sigma$, modularit\'e $Q$) restent obtenus uniquement par l'ex\'ecution Python locale d\'ecrite ci-apr\`es, le prototype op\'erant sur des donn\'ees pr\'e-calcul\'ees et des m\'etriques approch\'ees pour rester r\'eactif dans un navigateur.
+
+% ---- Prerequis ----
+
+\subsection{Pr\'erequis}
+
+Les \'el\'ements suivants doivent \^etre install\'es sur la machine avant d'utiliser le projet~:
+
+\begin{itemize}
+  \item \textbf{Python 3.10 ou sup\'erieur}~: test\'e avec les versions 3.10, 3.11 et 3.12. La version 3.13 est compatible mais certaines biblioth\`eques C peuvent n\'ecessiter une compilation manuelle.
+  \item \textbf{pip}~: gestionnaire de paquets Python (inclus avec Python 3.10+).
+  \item \textbf{TeX Live 2024} (ou MiKTeX)~: distribution LaTeX compl\`ete incluant pdfLaTeX et Biber pour la compilation du rapport.
+  \item \textbf{Git}~: pour le clonage du d\'ep\^ot et le contr\^ole de version.
+  \item \textbf{Espace disque}~: au minimum 100~Mo (CSV de 74~Mo + figures g\'en\'er\'ees + rapport PDF).
+\end{itemize}
+
+% ---- Installation ----
+
+\subsection{Installation}
+
+Cloner le d\'ep\^ot et installer les d\'ependances Python~:
+
+\begin{lstlisting}[language={}, numbers=none, caption={Clonage et installation}]
+$ git clone <repository-url>
+$ cd polygon-weth-crash-analysis
+$ pip install -r requirements.txt
+\end{lstlisting}
+
+\paragraph{Note importante~:} le fichier de donn\'ees \texttt{polygon\_weth\_crash\_2024-08-05.csv} (74~Mo, 401\,709 transactions) doit \^etre plac\'e \`a la racine du projet. Ce fichier n'est pas inclus dans le d\'ep\^ot Git en raison de sa taille. Il peut \^etre r\'eg\'en\'er\'e \`a partir de Google BigQuery~\cite{bigquery_public} via la commande \texttt{python main.py} (n\'ecessite un fichier de cl\'e de service \texttt{google\_key.json}).
+
+% ---- Utilisation ----
+
+\subsection{Utilisation}
+
+Le projet s'utilise en trois \'etapes principales~:
+
+\paragraph{1. Extraction des donn\'ees (optionnel)~:} cette \'etape n'est n\'ecessaire que si le fichier CSV n'est pas d\'ej\`a disponible. Elle requiert un compte Google Cloud Platform et un fichier de cl\'e de service.
+
+\begin{lstlisting}[language={}, numbers=none, caption={Extraction des donn\'ees depuis BigQuery}]
+$ python main.py
+\end{lstlisting}
+
+\paragraph{2. Ex\'ecution des analyses~:} le script orchestrateur lance s\'equentiellement les six analyses et g\'en\`ere les 16 figures dans \texttt{figures/}.
+
+\begin{lstlisting}[language={}, numbers=none, caption={Lancement des analyses}]
+$ python run_all.py
+\end{lstlisting}
+
+\paragraph{3. Compilation du rapport~:} g\'en\`ere le fichier PDF final contenant le rapport complet avec figures int\'egr\'ees.
+
+\begin{lstlisting}[language={}, numbers=none, caption={Compilation du rapport LaTeX}]
+$ cd rapport
+$ latexmk -pdf main.tex
+\end{lstlisting}
+
+% ---- Structure des fichiers ----
+
+\subsection{Structure des fichiers}
+
+L'arborescence compl\`ete du projet est la suivante~:
+
+\begin{lstlisting}[language={}, numbers=none, caption={Arborescence du projet}]
+projet/
++-- polygon_weth_crash_2024-08-05.csv  (donnees, 74 Mo)
++-- run_all.py                         (orchestrateur)
++-- main.py                            (fetching BigQuery)
++-- requirements.txt                   (dependances Python)
++-- src/
+|   +-- graph_builder.py               (construction du graphe)
+|   +-- style.py                       (style matplotlib)
+|   +-- rq1_topologie.py               (RQ1 : topologie)
+|   +-- rq2_centralite.py              (RQ2 : centralite)
+|   +-- rq3_communautes.py             (RQ3 : communautes)
+|   +-- rq4_temporel.py                (RQ4 : temporel)
+|   +-- rq5_petitmonde.py              (RQ5 : petit-monde)
+|   +-- rq6_flux_ponderes.py           (RQ6 : flux ponderes)
++-- figures/                           (16 PNG, 200 DPI)
++-- rapport/
+    +-- main.tex                       (document principal)
+    +-- references.bib                 (bibliographie)
+    +-- sections/                      (14 fichiers .tex)
+    +-- annexes/                       (3 fichiers .tex)
+\end{lstlisting}
+
+\paragraph{Description des r\'epertoires~:}
+\begin{itemize}
+  \item \texttt{src/}~: contient les 8 modules Python. Chaque module \texttt{rq\{1-6\}\_*.py} expose une fonction \texttt{run(df, digraph, graph)} qui ex\'ecute l'analyse correspondante et g\'en\`ere les figures associ\'ees.
+  \item \texttt{figures/}~: r\'epertoire de sortie des 12 visualisations PNG \`a 200~DPI. Les figures \`a fond sombre (\texttt{\#0F172A}) repr\'esentent les graphes r\'eseau, tandis que les figures \`a fond clair correspondent aux graphiques analytiques.
+  \item \texttt{rapport/}~: contient le document LaTeX principal (\texttt{main.tex}), le fichier de bibliographie (\texttt{references.bib}), les 14 fichiers de sections et les 3 fichiers d'annexes.
+\end{itemize}

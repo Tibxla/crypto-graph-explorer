@@ -1,0 +1,99 @@
+% sections/rq5.tex
+% Phase 7: RQ5 Petit-Monde (RQ5-01 a RQ5-06)
+
+\section{RQ5 -- Propri\'et\'es petit-monde}
+\label{sec:rq5}
+
+Le r\'eseau WETH pr\'esente-t-il les propri\'et\'es d'un \textbf{petit monde}~? Le mod\`ele de Watts et Strogatz~\cite{watts1998smallworld} d\'efinit un tel r\'eseau par un coefficient de clustering bien sup\'erieur \`a celui d'un graphe al\'eatoire de m\^emes param\`etres, combin\'e \`a une longueur moyenne des chemins comparable. On le quantifie par le quotient $\sigma = (C / C_{\text{rand}}) \,/\, (L / L_{\text{rand}})$~\cite{humphries2008smallworld}~: un $\sigma \gg 1$ confirme le caract\`ere petit-monde. Si c'est le cas, les chocs de valeur peuvent se propager rapidement \`a travers le r\'eseau tout en s'amplifiant localement dans des voisinages denses --- un m\'ecanisme favorable aux cascades de liquidations.
+
+\subsection{M\'ethodologie}
+\label{sec:rq5_methodo}
+
+\paragraph{Pr\'eparation du graphe.}
+L'analyse petit-monde op\`ere sur la version non orient\'ee du graphe de transferts WETH, conform\'ement \`a la d\'efinition originale de Watts et Strogatz~\cite{watts1998smallworld} qui s'applique aux r\'eseaux non orient\'es. Le graphe orient\'e pond\'er\'e $G = (V, E)$ construit en RQ1 est converti en graphe non orient\'e par fusion des ar\^etes r\'eciproques, produisant un graphe de $n = 12\,880$ sommets et $33\,827$ ar\^etes non orient\'ees. La densit\'e du graphe non orient\'e est $p = 0{,}000408$. Ce graphe n'est pas enti\`erement connexe~: les calculs de longueur de chemin sont donc effectu\'es sur la plus grande composante connexe (LCC), qui regroupe $12\,538$ n\oe{}uds ($97{,}3\,\%$ du graphe total) et $33\,576$ ar\^etes, assurant la repr\'esentativit\'e des r\'esultats.
+
+\paragraph{Coefficients de clustering.}
+Deux mesures de clustering sont calcul\'ees, capturant des aspects diff\'erents de la densit\'e locale~:
+\begin{itemize}
+  \item \textbf{Transitivit\'e globale}~: $C_{\text{trans}} = \frac{3 \times |\text{triangles}|}{|\text{triplets}|}$, rapport entre le nombre de triangles ferm\'es et le nombre total de triplets dans le graphe. Cette m\'etrique globale pond\`ere implicitement chaque triangle par sa contribution \`a l'ensemble du r\'eseau.
+  \item \textbf{Clustering moyen}~: $\bar{C} = \frac{1}{n} \sum_{v \in V} C_v$, o\`u $C_v$ est la fraction de paires de voisins du sommet $v$ qui sont connect\'es entre eux. Cette mesure locale pond\`ere \'egalement chaque n\oe{}ud, ind\'ependamment de son degr\'e.
+\end{itemize}
+Ces deux m\'etriques peuvent diverger significativement sur les r\'eseaux \`a distribution de degr\'es h\'et\'erog\`ene~\cite{newman2018networks}~: les n\oe{}uds de tr\`es fort degr\'e tendent \`a avoir un clustering local faible (il est peu probable que tous leurs voisins soient connect\'es entre eux), ce qui abaisse la transitivit\'e globale par rapport au clustering moyen. Pour le calcul du quotient $\sigma$, la \textbf{transitivit\'e} est utilis\'ee de mani\`ere coh\'erente pour le graphe observ\'e et pour les graphes al\'eatoires de r\'ef\'erence, garantissant une comparaison homog\`ene.
+
+\paragraph{Estimation de la longueur des chemins.}
+La longueur moyenne des plus courts chemins est estim\'ee sur la LCC ($12\,538$ n\oe{}uds) par \'echantillonnage de $1\,000$ paires al\'eatoires de sommets (graine fix\'ee \`a 42 pour la reproductibilit\'e). Pour chaque paire $(u, v)$, le plus court chemin est calcul\'e via l'algorithme de Dijkstra non pond\'er\'e. Cette approche par \'echantillonnage fournit une estimation fiable sans le co\^ut prohibitif du calcul exhaustif de toutes les paires ($\approx 78$ millions de chemins)~\cite{newman2018networks}. La totalit\'e des $1\,000$ paires \'echantillonn\'ees ont produit un chemin valide, confirmant la pleine connexit\'e de la LCC.
+
+\paragraph{Comparaison avec le mod\`ele Erd\H{o}s-R\'enyi.}
+Pour \'etablir une r\'ef\'erence al\'eatoire, 10 graphes sont g\'en\'er\'es selon le mod\`ele $G(n, p)$ d'Erd\H{o}s et R\'enyi~\cite{erdos1959random}, avec les m\^emes param\`etres que le graphe observ\'e~: $n = 12\,880$ sommets et $p = 0{,}000408$ (probabilit\'e de connexion \'egale \`a la densit\'e du graphe observ\'e). Chaque graphe al\'eatoire est g\'en\'er\'e avec une graine d\'eterministe ($42 + i$ pour le $i$-\`eme graphe) assurant la reproductibilit\'e. Pour chaque graphe $G_{\text{ER}}^{(i)}$, la transitivit\'e et la longueur moyenne des chemins (estim\'ee par \'echantillonnage de $1\,000$ paires sur la plus grande composante connexe) sont calcul\'ees. Les valeurs de r\'ef\'erence $C_{\text{rand}}$ et $L_{\text{rand}}$ sont obtenues par moyenne arithm\'etique sur les 10 r\'ealisations.
+
+\paragraph{Quotient sigma.}
+Le quotient petit-monde $\sigma$ est calcul\'e manuellement selon la formule de Humphries et Gurney~\cite{humphries2008smallworld}~:
+\begin{equation}
+\sigma = \frac{C_{\text{obs}} \,/\, C_{\text{rand}}}{L_{\text{obs}} \,/\, L_{\text{rand}}}
+\label{eq:sigma}
+\end{equation}
+o\`u $C_{\text{obs}}$ et $L_{\text{obs}}$ d\'esignent respectivement la transitivit\'e et la longueur moyenne des chemins du graphe observ\'e, et $C_{\text{rand}}$, $L_{\text{rand}}$ celles du mod\`ele al\'eatoire. Un $\sigma \gg 1$ confirme les propri\'et\'es petit-monde~: le clustering est nettement sup\'erieur au hasard tandis que les chemins restent comparables. Ce calcul est effectu\'e manuellement plut\^ot que via la fonction \texttt{nx.sigma()} de NetworkX, dont l'impl\'ementation g\'en\`ere 100 graphes al\'eatoires et s'av\`ere prohibitive en temps de calcul pour un graphe de cette taille.
+
+\subsection{R\'esultats}
+\label{sec:rq5_resultats}
+
+\paragraph{Coefficients de clustering.}
+La transitivit\'e globale du r\'eseau WETH vaut $C_{\text{trans}} = 0{,}029715$ et le clustering moyen $\bar{C} = 0{,}114295$. L'\'ecart d'un facteur $3{,}8$ entre les deux mesures vient de l'h\'et\'erog\'en\'eit\'e des degr\'es~: les n\oe{}uds de faible degr\'e, majoritaires dans le r\'eseau, ont souvent un clustering local \'elev\'e parce que leurs quelques voisins forment des cliques compl\`etes, ce qui tire $\bar{C}$ au-dessus de la transitivit\'e globale. La distribution des coefficients par n\oe{}ud (Figure~\ref{fig:rq5_clustering_dist}) est bimodale~: $10\,159$ n\oe{}uds ($78{,}9\,\%$) ont un clustering nul, principalement des n\oe{}uds pendants (degr\'e 1) pour lesquels le coefficient n'est pas d\'efini ou est fix\'e \`a z\'ero. Les $2\,721$ n\oe{}uds restants ($21{,}1\,\%$) ont un clustering strictement positif, et une fraction non n\'egligeable d'entre eux approche $C_v = 1{,}0$ (petites cliques int\'egralement interconnect\'ees).
+
+\paragraph{Longueur des chemins.}
+La longueur moyenne des chemins, estim\'ee sur la LCC de $12\,538$ n\oe{}uds \`a partir de $1\,000$ paires al\'eatoires, est de $L = 3{,}9700$ sauts. Pour un r\'eseau de pr\`es de $13\,000$ sommets, c'est peu, et c'est conforme au diam\`etre court ($D \approx 14$) d\'ej\`a rapport\'e en RQ1.
+
+\paragraph{Comparaison avec le mod\`ele al\'eatoire.}
+Le Tableau~\ref{tab:rq5_comparison} synth\'etise la comparaison entre le r\'eseau observ\'e et la moyenne des 10 graphes Erd\H{o}s-R\'enyi de m\^emes param\`etres. La Figure~\ref{fig:rq5_comparison} illustre visuellement cette comparaison.
+
+\begin{table}[H]
+\centering
+\caption{Comparaison des propri\'et\'es petit-monde entre le r\'eseau WETH observ\'e et la moyenne de 10 graphes al\'eatoires Erd\H{o}s-R\'enyi de m\^emes param\`etres ($n = 12\,880$, $p = 0{,}000408$).}
+\label{tab:rq5_comparison}
+\begin{tabular}{lrrr}
+\toprule
+M\'etrique & R\'eseau observ\'e & ER al\'eatoire (moy.) & Ratio \\
+\midrule
+Transitivit\'e ($C$) & $0{,}029715$ & $0{,}000381$ & $77{,}94\times$ \\
+Longueur moy. chemins ($L$) & $3{,}9700$ & $5{,}9034$ & $0{,}67\times$ \\
+\midrule
+$\sigma = (C/C_{\text{rand}}) \,/\, (L/L_{\text{rand}})$ & \multicolumn{3}{c}{$\mathbf{115{,}90}$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La transitivit\'e du r\'eseau observ\'e ($C = 0{,}029715$) vaut 78 fois celle des graphes al\'eatoires ($C_{\text{rand}} = 0{,}000381$)~: les adresses ferment beaucoup de triangles, autrement dit les partenaires d'\'echange d'une m\^eme adresse \'echangent souvent entre eux. La longueur moyenne des chemins ($L = 3{,}97$) est 33\,\% plus courte que dans le mod\`ele al\'eatoire ($L_{\text{rand}} = 5{,}90$), parce que les n\oe{}uds centraux servent de raccourcis.
+
+Le quotient $\sigma = 115{,}90$ d\'epasse largement le seuil $\sigma = 1$~: le r\'eseau WETH pr\'esente des propri\'et\'es petit-monde marqu\'ees.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{rq5_small_world_comparison.png}
+  \caption{Comparaison des propri\'et\'es petit-monde entre le r\'eseau WETH observ\'e (bleu) et la moyenne de 10 graphes Erd\H{o}s-R\'enyi (violet). \`A gauche~: coefficient de clustering (transitivit\'e). \`A droite~: longueur moyenne des chemins. Le r\'eseau observ\'e pr\'esente un clustering $78\times$ sup\'erieur au mod\`ele al\'eatoire avec des chemins $33\,\%$ plus courts, confirmant un quotient $\sigma = 115{,}90$.}
+  \label{fig:rq5_comparison}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{rq5_clustering_distribution.png}
+  \caption{Distribution des coefficients de clustering locaux par n\oe{}ud. Les lignes verticales indiquent la transitivit\'e globale ($C_{\text{trans}} = 0{,}0297$, rouge) et le clustering moyen ($\bar{C} = 0{,}1143$, jaune). La majorit\'e des n\oe{}uds ($78{,}9\,\%$) pr\'esentent un clustering nul (n\oe{}uds p\'eriph\'eriques \`a connexion unique), tandis qu'une fraction significative approche $C_v = 1$ (cliques locales compl\`etes).}
+  \label{fig:rq5_clustering_dist}
+\end{figure}
+
+\subsection{Interpr\'etation}
+\label{sec:rq5_interpretation}
+
+$\sigma = 115{,}90$ place le r\'eseau WETH tr\`es au-del\`a du seuil petit-monde~\cite{watts1998smallworld}. Le clustering est sup\'erieur de deux ordres de grandeur \`a celui d'un graphe al\'eatoire comparable, donc les adresses transigent souvent avec les partenaires de leurs partenaires. Les chemins restent courts, et m\^eme plus courts que dans le mod\`ele al\'eatoire, parce que les n\oe{}uds centraux (routeurs DEX, ponts, protocoles de pr\^et) servent de raccourcis.
+
+\`A l'\'echelle d'un choc, cette g\'eom\'etrie a deux cons\'equences. D'abord, un mouvement de panique se propage tr\`es vite localement~: quand une adresse liquide, ses contreparties (qui sont elles-m\^emes connect\'ees entre elles) subissent presque imm\'ediatement la m\^eme pression. Le voisinage fonctionne alors comme une chambre d'\'echo. Ensuite, les chemins courts permettent au choc local de gagner le reste du r\'eseau via les ponts intercommunautaires de RQ2. C'est le m\^eme m\'ecanisme \`a deux vitesses que celui d\'ecrit en RQ3, vu sous un autre angle~: diffusion rapide \`a l'int\'erieur d'une communaut\'e, transmission entre communaut\'es en quelques sauts via les hubs.
+
+Les autres analyses convergent dans ce sens. Le noyau fortement connexe \`a $40{,}4\,\%$ de RQ1 et le diam\`etre court fournissent le substrat topologique du petit-monde. Les n\oe{}uds \`a forte interm\'ediarit\'e de RQ2 maintiennent les chemins courts malgr\'e la compartimentalisation observ\'ee en RQ3 ($Q = 0{,}6445$). Et le double pic temporel de RQ4 montre concr\`etement comment un choc initi\'e dans une fen\^etre horaire (les liquidations nocturnes) atteint l'ensemble du r\'eseau quelques heures plus tard.
+
+La Figure~\ref{fig:rq5_network} rend visible cette structure petit-monde~: les n\oe{}uds sont color\'es par leur coefficient de clustering local, du bleu (faible) au rouge (\'elev\'e). Les zones denses \`a forte coloration chaude correspondent aux voisinages coh\'esifs o\`u se forment les triangles locaux, tandis que les n\oe{}uds bleus agissent comme des ponts entre ces grappes.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.90\textwidth]{rq5_clustering_network.png}
+  \caption{\'Echantillon du r\'eseau WETH color\'e par coefficient de clustering local (bleu~=~faible, rouge~=~\'elev\'e). Les grappes \`a fort clustering (en rouge) illustrent les voisinages coh\'esifs caract\'eristiques des r\'eseaux petit-monde.}
+  \label{fig:rq5_network}
+\end{figure}

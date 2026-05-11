@@ -1,0 +1,93 @@
+% sections/rq1.tex
+% Phase 3: RQ1 Topologie (RQ1-01 a RQ1-06)
+
+\section{RQ1 -- Analyse de la topologie du r\'eseau}
+\label{sec:rq1}
+
+On commence par examiner la structure topologique globale du r\'eseau~: distribution des degr\'es, densit\'e, composantes connexes, diam\`etre et longueur moyenne des chemins. Ces m\'etriques donnent une premi\`ere image de l'architecture des \'echanges WETH pendant le crash.
+
+\subsection{M\'ethodologie}
+\label{sec:rq1_methodo}
+
+L'analyse topologique repose sur la construction d'un graphe orient\'e pond\'er\'e $G = (V, E)$ \`a partir des 401\,000 transferts WETH enregistr\'es le 5 ao\^ut 2024. Chaque adresse Ethereum constitue un sommet, et chaque transfert une ar\^ete orient\'ee du portefeuille \'emetteur vers le portefeuille r\'ecepteur. Les ar\^etes multiples entre une m\^eme paire de sommets sont agr\'eg\'ees par somme des poids (volume WETH) et comptage des transactions.
+
+Quatre familles de m\'etriques sont calcul\'ees. Premi\`erement, la \textbf{densit\'e} du r\'eseau, d\'efinie pour un graphe orient\'e comme~:
+\begin{equation}
+d = \frac{|E|}{|V| \cdot (|V| - 1)}
+\label{eq:density}
+\end{equation}
+o\`u $|V|$ d\'esigne le nombre de sommets et $|E|$ le nombre d'ar\^etes. Cette m\'etrique quantifie la proportion de connexions existantes par rapport au nombre maximal de connexions possibles. Le \textbf{degr\'e moyen} est donn\'e par~:
+\begin{equation}
+\bar{k} = \frac{|E|}{|V|}
+\label{eq:avg_degree}
+\end{equation}
+
+Deuxi\`emement, les \textbf{distributions des degr\'es} entrants ($k_{\text{in}}$) et sortants ($k_{\text{out}}$) sont analys\'ees s\'epar\'ement. Plut\^ot qu'un histogramme classique, nous utilisons la fonction de r\'epartition compl\'ementaire cumulative (CCDF), d\'efinie par $P(X \geq k)$, repr\'esent\'ee en \'echelle logarithmique sur les deux axes. Cette repr\'esentation est pr\'ef\'erable pour les distributions \`a queue lourde car elle \'evite les artefacts li\'es au choix des intervalles de regroupement et r\'ev\`ele plus clairement la forme de la distribution dans les hautes valeurs de degr\'e~\cite{clauset2009powerlaw}. L'observation d'une relation lin\'eaire en \'echelle log-log sugg\`ere un comportement h\'et\'erog\`ene caract\'eristique des r\'eseaux dits \og sans \'echelle \fg{}, o\`u quelques n\oe{}uds concentrent un nombre disproportionn\'e de connexions~\cite{barabasi1999scalefree}.
+
+Troisi\`emement, les \textbf{composantes connexes} sont identifi\'ees selon deux d\'efinitions. Les composantes faiblement connexes (WCC, \textit{weakly connected components}) ignorent l'orientation des ar\^etes~: deux sommets appartiennent \`a la m\^eme WCC s'il existe un chemin non orient\'e entre eux. Les composantes fortement connexes (SCC, \textit{strongly connected components}) respectent l'orientation~: deux sommets appartiennent \`a la m\^eme SCC si et seulement s'il existe un chemin orient\'e de l'un \`a l'autre et r\'eciproquement~\cite{newman2018networks}. La taille de la composante g\'eante, exprim\'ee en pourcentage du nombre total de sommets, indique le degr\'e de connectivit\'e globale du r\'eseau.
+
+Quatri\`emement, le \textbf{diam\`etre} (plus long des plus courts chemins) et la \textbf{longueur moyenne des chemins} sont estim\'es. Le diam\`etre est calcul\'e sur la plus grande composante fortement connexe, car il n'est d\'efini que sur les graphes connexes. Lorsque cette composante d\'epasse 5\,000 sommets, l'excentricit\'e est \'echantillonn\'ee sur 500 n\oe{}uds al\'eatoires (graine fix\'ee \`a 42 pour la reproductibilit\'e) afin de r\'eduire le co\^ut de calcul. La longueur moyenne des chemins est estim\'ee sur la plus grande WCC (version non orient\'ee du graphe) par \'echantillonnage de 1\,000 paires al\'eatoires de sommets.
+
+\subsection{R\'esultats}
+\label{sec:rq1_resultats}
+
+\paragraph{M\'etriques de base.}
+Le r\'eseau WETH comprend $|V| = 12\,880$ sommets et $|E| = 39\,999$ ar\^etes orient\'ees agr\'eg\'ees (33\,827 ar\^etes non orient\'ees), pour une densit\'e de $d = 2{,}41 \times 10^{-4}$. Le degr\'e moyen est $\bar{k} = 3{,}11$. Ces valeurs t\'emoignent d'un r\'eseau extr\^emement creux~: sur les quelque 165 millions de connexions possibles, seule une infime fraction est effectivement r\'ealis\'ee. La m\'ediane des degr\'es entrants et sortants est de 1{,}0, ce qui signifie que la majorit\'e des adresses n'ont interagi qu'avec un seul autre portefeuille au cours de la journ\'ee.
+
+\paragraph{Distribution des degr\'es.}
+La Figure~\ref{fig:rq1_degree} pr\'esente la CCDF des degr\'es entrants et sortants en \'echelle logarithmique. Les deux distributions pr\'esentent une queue lourde caract\'eristique~: le degr\'e entrant maximal atteint $k_{\text{in}}^{\max} = 865$ tandis que le degr\'e sortant maximal culmine \`a $k_{\text{out}}^{\max} = 2\,003$. La d\'ecroissance approximativement lin\'eaire de la CCDF en \'echelle log-log sugg\`ere un comportement compatible avec une distribution \`a queue lourde, typique des r\'eseaux sans \'echelle. Toutefois, nous ne qualifions pas formellement cette distribution de \og loi de puissance \fg{} en l'absence de test statistique d\'edi\'e (test de Kolmogorov-Smirnov, estimation du param\`etre $\alpha$ et de $x_{\min}$)~\cite{clauset2009powerlaw}. L'asym\'etrie entre degr\'es entrants et sortants, avec un maximum sortant plus de deux fois sup\'erieur au maximum entrant, indique la pr\'esence de n\oe{}uds diffuseurs (routeurs DEX, ponts inter-cha\^ines) dont l'activit\'e d'\'emission d\'epasse celle de r\'eception.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{rq1_degree_distribution.png}
+  \caption{Distribution compl\'ementaire cumulative (CCDF) des degr\'es entrants et sortants du r\'eseau WETH sur \'echelle logarithmique. La queue lourde sugg\`ere un comportement h\'et\'erog\`ene typique des r\'eseaux sans \'echelle~\cite{barabasi1999scalefree}.}
+  \label{fig:rq1_degree}
+\end{figure}
+
+\paragraph{Composantes connexes.}
+Le r\'eseau contient 95 composantes faiblement connexes et 7\,632 composantes fortement connexes. La composante g\'eante faiblement connexe regroupe 12\,538 sommets, soit 97{,}3\,\% du r\'eseau~: la quasi-totalit\'e des adresses actives sont reli\'ees par des chemins non orient\'es. En revanche, la composante g\'eante fortement connexe ne contient que 5\,206 sommets (40{,}4\,\%), ce qui r\'ev\`ele une asym\'etrie directionnelle importante~: de nombreuses adresses re\c{c}oivent ou \'emettent des WETH sans r\'eciprocit\'e. Le Tableau~\ref{tab:rq1_components} r\'esume ces r\'esultats. La Figure~\ref{fig:rq1_components} illustre la distribution de la taille des 20 plus grandes composantes pour chaque type, en \'echelle logarithmique en raison de la dominance de la composante g\'eante.
+
+\begin{table}[H]
+\centering
+\caption{R\'esum\'e des composantes connexes du r\'eseau WETH.}
+\label{tab:rq1_components}
+\begin{tabular}{lrr}
+\toprule
+M\'etrique & Faiblement connexes & Fortement connexes \\
+\midrule
+Nombre de composantes & 95 & 7\,632 \\
+Composante g\'eante (sommets) & 12\,538 & 5\,206 \\
+Composante g\'eante (\%) & 97{,}3\,\% & 40{,}4\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{rq1_components.png}
+  \caption{Distribution de la taille des 20 plus grandes composantes connexes (faiblement et fortement) du r\'eseau WETH, en \'echelle logarithmique. La composante g\'eante domine nettement dans les deux cas.}
+  \label{fig:rq1_components}
+\end{figure}
+
+\paragraph{Diam\`etre et longueur des chemins.}
+Le diam\`etre du r\'eseau, estim\'e sur la plus grande composante fortement connexe (5\,206 sommets) par \'echantillonnage de 500 excentricit\'es al\'eatoires, est d'environ $D \approx 14$ sauts. La longueur moyenne des chemins, estim\'ee sur la plus grande composante faiblement connexe (12\,538 sommets, graphe non orient\'e) \`a partir de 1\,000 paires al\'eatoires, est de $\bar{\ell} \approx 3{,}97$ sauts. Malgr\'e les 12\,880 sommets du r\'eseau, deux adresses quelconques de la composante g\'eante sont s\'epar\'ees en moyenne par moins de quatre interm\'ediaires, ce qui t\'emoigne d'une propagation efficace des transferts de valeur.
+
+\subsection{Interpr\'etation}
+\label{sec:rq1_interpretation}
+
+La densit\'e tr\`es faible ($d = 2{,}41 \times 10^{-4}$) est typique des r\'eseaux de transactions blockchain, o\`u la plupart des portefeuilles n'interagissent qu'avec une ou deux contreparties. Ce r\'eseau creux est pourtant presque enti\`erement connect\'e (WCC \`a 97{,}3\,\%)~: les transferts transitent par un petit nombre de n\oe{}uds centraux (routeurs DEX, ponts inter-cha\^ines, contrats de pr\^et) qui servent de plaques tournantes~\cite{newman2018networks}.
+
+La queue lourde s'accorde avec le m\'ecanisme d'attachement pr\'ef\'erentiel de Barab\'asi et Albert~\cite{barabasi1999scalefree}~: les adresses les plus connect\'ees attirent davantage de nouvelles connexions. Pendant un crash, l'effet s'amplifie~: les protocoles d'\'echange et de liquidation concentrent un nombre croissant de transactions quand les utilisateurs cherchent tous \`a convertir ou transf\'erer leurs WETH en m\^eme temps. L'asym\'etrie entre degr\'e sortant maximal (2\,003) et entrant maximal (865) sugg\`ere que certains contrats (routeurs DEX ou bots de liquidation) ont diffus\'e des WETH vers un tr\`es grand nombre de destinataires.
+
+L'\'ecart entre composante g\'eante faiblement connexe (97{,}3\,\%) et fortement connexe (40{,}4\,\%) correspond \`a une structure \og en n\oe{}ud papillon \fg{} (\textit{bow-tie}), classique sur les grands r\'eseaux orient\'es~: un noyau fortement connect\'e de transferts bidirectionnels, encadr\'e par des branches entrantes (adresses qui re\c{c}oivent sans \'emettre en retour) et des branches sortantes (adresses qui \'emettent sans recevoir). On retrouve cette g\'eom\'etrie sur d'autres r\'eseaux de crypto-actifs.
+
+Enfin, un diam\`etre court ($D \approx 14$) et une longueur moyenne des chemins de $\bar{\ell} \approx 3{,}97$ pour pr\`es de 13\,000 sommets ressemblent d\'ej\`a \`a un comportement petit-monde (test\'e formellement en RQ5)~: n'importe quelle adresse est s\'epar\'ee de n'importe quelle autre par moins de quatre interm\'ediaires, ce qui a pu faciliter la cascade rapide de transferts de panique le 5 ao\^ut.
+
+La Figure~\ref{fig:rq1_hub_network} illustre cette architecture en \'etoile~: le sous-graphe des 20 n\oe{}uds les plus connect\'es et de leurs voisins directs montre la centralisation extr\^eme du r\'eseau autour de quelques hubs (en orange), chacun irradiant vers de nombreuses adresses p\'eriph\'eriques.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.90\textwidth]{rq1_hub_network.png}
+  \caption{Sous-graphe des 20 hubs principaux (en orange) du r\'eseau WETH et de leurs voisins directs. La topologie en \'etoile confirme la structure hub-and-spoke caract\'eristique des r\'eseaux sans \'echelle.}
+  \label{fig:rq1_hub_network}
+\end{figure}

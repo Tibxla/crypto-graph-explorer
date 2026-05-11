@@ -1,0 +1,135 @@
+% sections/rq2.tex
+% Phase 4: RQ2 Centralite (RQ2-01 a RQ2-06)
+
+\section{RQ2 -- Analyse de la centralit\'e}
+\label{sec:rq2}
+
+La distribution des degr\'es \`a queue lourde (RQ1) sugg\`ere que certains n\oe{}uds concentrent un nombre disproportionn\'e de connexions. On cherche ici \`a identifier ces n\oe{}uds par quatre mesures de centralit\'e~\cite{freeman1977centrality}, et \`a d\'eterminer si les m\^emes adresses dominent syst\'ematiquement les quatre classements ou si chaque mesure capture un aspect diff\'erent de l'influence.
+
+\subsection{M\'ethodologie}
+\label{sec:rq2_methodo}
+
+Quatre mesures de centralit\'e sont calcul\'ees sur le graphe orient\'e pond\'er\'e $G = (V, E)$ construit \`a partir des $12\,880$ sommets et $39\,999$ ar\^etes agr\'eg\'ees du r\'eseau WETH. Chaque mesure \'eclaire une dimension diff\'erente de l'importance d'un n\oe{}ud~: le nombre de connexions directes, le r\^ole d'interm\'ediaire, la proximit\'e structurelle et l'importance relative dans un mod\`ele de marche al\'eatoire.
+
+\paragraph{Centralit\'e de degr\'e.}
+La centralit\'e de degr\'e mesure le nombre de connexions directes d'un sommet, normalis\'e par le nombre maximal de connexions possibles. Pour un graphe orient\'e, on distingue la centralit\'e de degr\'e entrant et sortant~:
+\begin{equation}
+C_{\text{in}}(v) = \frac{k_{\text{in}}(v)}{|V|-1}, \qquad C_{\text{out}}(v) = \frac{k_{\text{out}}(v)}{|V|-1}
+\label{eq:degree_centrality}
+\end{equation}
+o\`u $k_{\text{in}}(v)$ et $k_{\text{out}}(v)$ d\'esignent respectivement le degr\'e entrant et sortant du sommet $v$, et $|V| = 12\,880$ le nombre total de sommets. Un degr\'e entrant \'elev\'e identifie les adresses recevant des transferts depuis de nombreuses sources (r\'ecepteurs populaires), tandis qu'un degr\'e sortant \'elev\'e signale les adresses \'emettant vers de nombreux destinataires (distributeurs actifs).
+
+\paragraph{Centralit\'e d'interm\'ediarit\'e.}
+La centralit\'e d'interm\'ediarit\'e (\textit{betweenness centrality}), introduite par Freeman~\cite{freeman1977centrality}, quantifie le r\^ole d'un sommet comme pont entre les autres paires de sommets~:
+\begin{equation}
+C_B(v) = \sum_{\substack{s,t \in V \\ s \neq v \neq t}} \frac{\sigma_{st}(v)}{\sigma_{st}}
+\label{eq:betweenness}
+\end{equation}
+o\`u $\sigma_{st}$ est le nombre de plus courts chemins entre $s$ et $t$, et $\sigma_{st}(v)$ le nombre de ces chemins passant par $v$. Un n\oe{}ud \`a forte interm\'ediarit\'e constitue un goulot d'\'etranglement potentiel~: sa suppression allongerait significativement les chemins entre de nombreuses paires de sommets. Le calcul exact de cette mesure est en $O(|V| \cdot |E|)$, ce qui repr\'esente environ $5 \times 10^8$ op\'erations pour notre graphe. Afin de maintenir un temps d'ex\'ecution raisonnable (environ 5 secondes au lieu de plusieurs heures), nous utilisons un \'echantillonnage al\'eatoire de $k = 500$ sommets pivots avec une graine fix\'ee \`a 42 pour assurer la reproductibilit\'e. Cette approximation est standard dans la litt\'erature pour les graphes de plus de $5\,000$ sommets~\cite{newman2018networks}.
+
+\paragraph{Centralit\'e de proximit\'e.}
+La centralit\'e de proximit\'e (\textit{closeness centrality}) mesure la proximit\'e moyenne d'un sommet par rapport \`a tous les autres~:
+\begin{equation}
+C_C(v) = \frac{|V'|-1}{\displaystyle\sum_{u \in V', u \neq v} d(v,u)}
+\label{eq:closeness}
+\end{equation}
+o\`u $d(v,u)$ d\'esigne la longueur du plus court chemin entre $v$ et $u$, et $|V'|$ le nombre de sommets de la composante consid\'er\'ee. Cette mesure n'est d\'efinie que lorsque tous les sommets sont atteignables depuis $v$ (i.e., $d(v,u) < \infty$ pour tout $u$). Or, le r\'eseau WETH pr\'esente 95 composantes faiblement connexes (cf.~section~\ref{sec:rq1_resultats}), rendant le calcul impossible sur le graphe complet. Nous restreignons donc le calcul \`a la plus grande composante faiblement connexe (WCC) en version non orient\'ee, qui contient $12\,538$ sommets, soit $97{,}3\,\%$ du r\'eseau. Un n\oe{}ud \`a forte proximit\'e est structurellement \og au centre \fg{} du r\'eseau, accessible en peu de sauts depuis n'importe quel autre sommet.
+
+\paragraph{PageRank.}
+Le PageRank, introduit par Page et al.~\cite{page1999pagerank}, mod\'elise l'importance d'un sommet par une marche al\'eatoire avec redirection. \`A chaque pas, un marcheur al\'eatoire suit une ar\^ete sortante avec probabilit\'e $(1 - \alpha)$ ou se t\'el\'eporte vers un sommet al\'eatoire avec probabilit\'e $\alpha$. Le score PageRank de $v$ correspond \`a la probabilit\'e stationnaire de pr\'esence du marcheur sur $v$. Nous utilisons le facteur d'amortissement standard $\alpha = 0{,}85$ et la variante pond\'er\'ee~: les poids des ar\^etes (volumes WETH agr\'eg\'es) influencent la probabilit\'e de transition, de sorte que les n\oe{}uds recevant des transferts de volume \'elev\'e obtiennent un score sup\'erieur. Contrairement \`a la simple centralit\'e de degr\'e, le PageRank tient compte de la qualit\'e des connexions entrantes~: \^etre connect\'e \`a un n\oe{}ud lui-m\^eme influent a plus d'impact qu'\^etre connect\'e \`a un n\oe{}ud p\'eriph\'erique.
+
+\subsection{R\'esultats}
+\label{sec:rq2_resultats}
+
+\paragraph{Centralit\'e de degr\'e.}
+L'adresse avec la centralit\'e de degr\'e entrant la plus \'elev\'ee est \texttt{0xe50f...8128c8} ($C_{\text{in}} = 0{,}0672$), qui a re\c{c}u des transferts depuis $865$ adresses distinctes au cours de la journ\'ee. La centralit\'e de degr\'e sortant donne un autre leader~: \texttt{0x2818...cb7116} ($C_{\text{out}} = 0{,}1556$), qui a \'emis vers $2\,003$ adresses distinctes, soit pr\`es du double du maximum entrant. C'est l'effet des n\oe{}uds distributeurs d\'ej\`a rep\'er\'es en RQ1. Sur les dix premi\`eres adresses de chaque classement, sept apparaissent dans les deux top-10 (\texttt{0x45dd...f50608}, \texttt{0x50ea...5cc6d7}, \texttt{0xa4d8...6228d9}, \texttt{0x86f1...e618e0}, \texttt{0xc590...74c02b}, \texttt{0x0000...148dea}, \texttt{0xdef1...6fee57})~: les n\oe{}uds les plus actifs fonctionnent comme des relais bidirectionnels, qui re\c{c}oivent et redistribuent en gros volume.
+
+\paragraph{Centralit\'e d'interm\'ediarit\'e.}
+Le classement par interm\'ediarit\'e (estim\'ee avec $k = 500$ pivots) place \texttt{0x2818...cb7116} en t\^ete ($C_B = 0{,}0816$), suivi de \texttt{0xe50f...8128c8} ($C_B = 0{,}0692$) et \texttt{0x86f1...e618e0} ($C_B = 0{,}0606$). Les huit premiers n\oe{}uds par interm\'ediarit\'e figurent \'egalement dans le top-10 du degr\'e (entrant ou sortant), ce qui sugg\`ere que dans ce r\'eseau, les n\oe{}uds les plus connect\'es sont aussi les ponts structurels les plus critiques. L'adresse \texttt{0x1231...6f4eae} se distingue en apparaissant au rang~9 de l'interm\'ediarit\'e sans figurer dans les top-10 de degr\'e, sugg\'erant un r\^ole sp\'ecifique de pont entre communaut\'es malgr\'e un nombre de connexions plus modeste.
+
+\paragraph{Centralit\'e de proximit\'e.}
+Calcul\'ee sur la plus grande WCC ($12\,538$ sommets), la centralit\'e de proximit\'e r\'ev\`ele un classement sensiblement diff\'erent. L'adresse \texttt{0x86f1...e618e0} domine avec $C_C = 0{,}4288$, suivie de \texttt{0x45dd...f50608} ($C_C = 0{,}4240$) et \texttt{0xa4d8...6228d9} ($C_C = 0{,}4216$). Ces trois sommets sont accessibles en moyenne en moins de $2{,}4$ sauts depuis n'importe quel autre sommet de la composante g\'eante. En revanche, les deux leaders en degr\'e sortant et interm\'ediarit\'e (\texttt{0x2818...cb7116} et \texttt{0xe50f...8128c8}) ne figurent pas dans le top-10 de proximit\'e, signe qu'un degr\'e \'elev\'e ne garantit pas une position centrale au sens de la distance moyenne. Les n\oe{}uds les plus proches sont ceux connect\'es \`a des voisins eux-m\^emes bien connect\'es, formant un noyau dense au c\oe{}ur du r\'eseau.
+
+\paragraph{PageRank.}
+Le classement PageRank pond\'er\'e place \texttt{0xe50f...8128c8} en t\^ete ($PR = 0{,}0425$), ce qui co\"incide avec le leader du degr\'e entrant. Cette convergence est attendue~: le PageRank favorise les n\oe{}uds recevant de nombreux transferts entrants, particuli\`erement lorsque ceux-ci proviennent d'adresses elles-m\^emes influentes. L'adresse \texttt{0xa4d8...6228d9} occupe la deuxi\`eme position ($PR = 0{,}0280$), suivie de \texttt{0x50ea...5cc6d7} ($PR = 0{,}0226$) et \texttt{0x45dd...f50608} ($PR = 0{,}0223$). Parmi les dix premiers, six figurent \'egalement dans le top-10 du degr\'e entrant, confirmant la corr\'elation mod\'er\'ee entre ces deux mesures ($\rho = 0{,}606$). L'adresse \texttt{0x802b...3f328b} appara\^it au rang~5 du PageRank ($PR = 0{,}0187$) sans figurer dans aucun autre top-10, indiquant qu'elle re\c{c}oit des transferts de volume particuli\`erement \'elev\'e depuis des n\oe{}uds importants.
+
+\paragraph{Analyse comparative.}
+Le Tableau~\ref{tab:rq2_deg_pr} pr\'esente le classement comparatif des dix adresses les plus centrales selon la centralit\'e de degr\'e entrant et le PageRank, tandis que le Tableau~\ref{tab:rq2_bet_clo} compare l'interm\'ediarit\'e et la proximit\'e. La Figure~\ref{fig:rq2_barplots} illustre visuellement les top-10 pour les quatre mesures.
+
+\begin{table}[H]
+\centering
+\caption{Classement comparatif des dix adresses les plus centrales selon la centralit\'e de degr\'e entrant et le PageRank pond\'er\'e.}
+\label{tab:rq2_deg_pr}
+\begin{tabular}{clclc}
+\toprule
+Rang & Degr\'e entrant & $C_{\text{in}}$ & PageRank & $PR$ \\
+\midrule
+1 & \texttt{0xe50f...8128c8} & $0{,}0672$ & \texttt{0xe50f...8128c8} & $0{,}0425$ \\
+2 & \texttt{0x86f1...e618e0} & $0{,}0419$ & \texttt{0xa4d8...6228d9} & $0{,}0280$ \\
+3 & \texttt{0x45dd...f50608} & $0{,}0415$ & \texttt{0x50ea...5cc6d7} & $0{,}0226$ \\
+4 & \texttt{0xc590...74c02b} & $0{,}0366$ & \texttt{0x45dd...f50608} & $0{,}0223$ \\
+5 & \texttt{0xa4d8...6228d9} & $0{,}0359$ & \texttt{0x802b...3f328b} & $0{,}0187$ \\
+6 & \texttt{0x50ea...5cc6d7} & $0{,}0306$ & \texttt{0xdef1...6fee57} & $0{,}0172$ \\
+7 & \texttt{0x0000...148dea} & $0{,}0290$ & \texttt{0x55ca...678207} & $0{,}0160$ \\
+8 & \texttt{0xc9e1...35158d} & $0{,}0286$ & \texttt{0x86f1...e618e0} & $0{,}0158$ \\
+9 & \texttt{0xdef1...6fee57} & $0{,}0238$ & \texttt{0xb33b...199346} & $0{,}0114$ \\
+10 & \texttt{0x9d9d...b5ab47} & $0{,}0232$ & \texttt{0xa6ae...9a9719} & $0{,}0113$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Classement comparatif des dix adresses les plus centrales selon la centralit\'e d'interm\'ediarit\'e (estim\'ee, $k{=}500$) et de proximit\'e (sur la WCC, $12\,538$ sommets).}
+\label{tab:rq2_bet_clo}
+\begin{tabular}{clclc}
+\toprule
+Rang & Interm\'ediarit\'e & $C_B$ & Proximit\'e & $C_C$ \\
+\midrule
+1 & \texttt{0x2818...cb7116} & $0{,}0816$ & \texttt{0x86f1...e618e0} & $0{,}4287$ \\
+2 & \texttt{0xe50f...8128c8} & $0{,}0692$ & \texttt{0x45dd...f50608} & $0{,}4240$ \\
+3 & \texttt{0x86f1...e618e0} & $0{,}0606$ & \texttt{0xa4d8...6228d9} & $0{,}4216$ \\
+4 & \texttt{0x45dd...f50608} & $0{,}0482$ & \texttt{0x50ea...5cc6d7} & $0{,}4192$ \\
+5 & \texttt{0xc590...74c02b} & $0{,}0429$ & \texttt{0xbb98...f29be4} & $0{,}4099$ \\
+6 & \texttt{0xa4d8...6228d9} & $0{,}0409$ & \texttt{0x4ccd...96f9b1} & $0{,}3883$ \\
+7 & \texttt{0x50ea...5cc6d7} & $0{,}0347$ & \texttt{0x95d2...993896} & $0{,}3874$ \\
+8 & \texttt{0xec7b...fefda2} & $0{,}0344$ & \texttt{0x3e31...f0ea26} & $0{,}3846$ \\
+9 & \texttt{0x1231...6f4eae} & $0{,}0320$ & \texttt{0xe37e...57bd09} & $0{,}3760$ \\
+10 & \texttt{0xdef1...6fee57} & $0{,}0311$ & \texttt{0x853e...1f670d} & $0{,}3720$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{rq2_centrality_barplots.png}
+  \caption{Classement des dix adresses les plus centrales selon chaque mesure de centralit\'e. Les barres horizontales facilitent la comparaison visuelle entre le degr\'e entrant (haut gauche), le degr\'e sortant (haut droit), l'interm\'ediarit\'e (bas gauche) et le PageRank (bas droit).}
+  \label{fig:rq2_barplots}
+\end{figure}
+
+L'analyse des corr\'elations de Spearman entre les quatre mesures, calcul\'ees sur les $12\,538$ n\oe{}uds communs (intersection avec la WCC), r\'ev\`ele des relations contrast\'ees. La corr\'elation la plus forte s'observe entre le degr\'e entrant et le PageRank ($\rho = 0{,}606$), ce qui est attendu puisque les deux mesures privil\'egient les n\oe{}uds recevant de nombreuses connexions. La corr\'elation entre le degr\'e entrant et l'interm\'ediarit\'e est mod\'er\'ee ($\rho = 0{,}514$)~: les n\oe{}uds les plus connect\'es tendent \`a \^etre des ponts, mais cette relation n'est pas syst\'ematique. En revanche, la corr\'elation entre la proximit\'e et le PageRank est quasi nulle ($\rho = 0{,}008$), ce qui montre que ces deux mesures capturent des aspects tr\`es diff\'erents~: la proximit\'e \'evalue la position g\'eom\'etrique, le PageRank l'importance en termes de flux. La Figure~\ref{fig:rq2_comparison} pr\'esente la matrice compl\`ete de ces corr\'elations.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{rq2_centrality_comparison.png}
+  \caption{Matrice de corr\'elation de Spearman entre les quatre mesures de centralit\'e, calcul\'ee sur les $12\,538$ n\oe{}uds de la composante g\'eante. Les valeurs \'elev\'ees (rouge fonc\'e) indiquent des classements similaires~; les valeurs proches de z\'ero (blanc) signalent des mesures capturant des dimensions ind\'ependantes de la centralit\'e.}
+  \label{fig:rq2_comparison}
+\end{figure}
+
+\subsection{Interpr\'etation}
+\label{sec:rq2_interpretation}
+
+Cinq \`a sept adresses apparaissent dans les top-10 des quatre mesures. Ces n\oe{}uds \og multi-centraux \fg{} correspondent probablement aux contrats des grands protocoles DEX (QuickSwap, SushiSwap), aux ponts inter-cha\^ines (Polygon Bridge), ou aux protocoles de pr\^et (Aave, Compound). L'adresse \texttt{0x2818...cb7116} est premi\`ere en degr\'e sortant ($C_{\text{out}} = 0{,}1556$, soit 2\,003 destinataires) et en interm\'ediarit\'e ($C_B = 0{,}0816$)~; le profil est celui d'un routeur DEX qui diffuse massivement les WETH tout en servant de pont topologique. \`A l'autre extr\'emit\'e, \texttt{0xe50f...8128c8} domine le degr\'e entrant et le PageRank ($PR = 0{,}0425$), ce qui ressemble \`a un accumulateur de liquidit\'e, probablement un contrat de \textit{staking} ou un \textit{vault} DeFi~\cite{newman2018networks}.
+
+La divergence avec la proximit\'e m\'erite qu'on s'y arr\^ete. Les quatre sommets les plus proches (\texttt{0x86f1...e618e0}, \texttt{0x45dd...f50608}, \texttt{0xa4d8...6228d9}, \texttt{0x50ea...5cc6d7}) forment un noyau dense au c\oe{}ur de la composante g\'eante, accessible en tr\`es peu de sauts. Mais ce noyau ne co\"incide qu'en partie avec les leaders en degr\'e ou en PageRank~: la position g\'eom\'etrique dans le r\'eseau n'est pas la m\^eme dimension que le volume de connexions. La corr\'elation quasi nulle entre proximit\'e et PageRank ($\rho = 0{,}008$) le confirme. Un n\oe{}ud peut \^etre g\'eom\'etriquement central sans concentrer de flux, et inversement.
+
+En chiffres~: environ $8{,}2\,\%$ des plus courts chemins du r\'eseau passent par la seule adresse \texttt{0x2818...cb7116}. Si ce n\oe{}ud avait \'et\'e congestionn\'e ou arr\^et\'e, la propagation des \'echanges aurait \'et\'e nettement ralentie. C\^ot\'e PageRank, \texttt{0xe50f...8128c8} concentre $4{,}25\,\%$ du score total, ce qui correspond \`a son r\^ole d'absorbeur de liquidit\'e pendant le crash.
+
+La Figure~\ref{fig:rq2_network} permet de visualiser ces relations de centralit\'e~: les n\oe{}uds sont dimensionn\'es par leur score PageRank et color\'es selon leur centralit\'e d'interm\'ediarit\'e (du bleu au orange). Les hubs multi-centraux apparaissent comme les plus grands n\oe{}uds aux teintes chaudes, entour\'es de grappes de n\oe{}uds p\'eriph\'eriques.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.90\textwidth]{rq2_centrality_network.png}
+  \caption{Sous-graphe des 30 n\oe{}uds les plus centraux et de leurs voisins. La taille des n\oe{}uds refl\`ete le score PageRank et la couleur indique la centralit\'e d'interm\'ediarit\'e (bleu~=~faible, orange~=~\'elev\'ee). Les \'etiquettes identifient les 10 adresses les plus influentes.}
+  \label{fig:rq2_network}
+\end{figure}

@@ -1,463 +1,0 @@
-                       Licence MIAGE
-            Rapport de projet Graphes et OpenData
-          Analyse du Réseau WETH sur Polygon
-             lors du Lundi Noir du 5 août 2024
-                    Projet réalisé du XX au XX
-                     Membres du groupe
-                       NomPrénom 1
-                       NomPrénom 2
-                       NomPrénom 3
-                   Année universitaire 20242025
-                Table des matières
-                1 Introduction                                                                                  3
-                2 Environnement de travail                                                                      4
-                3 Description du projet et objectifs                                                            5
-                    3.1  Données utilisées . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      5
-                    3.2  Questions de recherche . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       5
-                    3.3  Prétraitement des données . . . . . . . . . . . . . . . . . . . . . . . . . . .        6
-                4 Bibliothèques, Outils et technologies                                                         7
-                    4.1  Analyse de graphe      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   7
-                    4.2  Visualisation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    7
-                    4.3  Traitement de données . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        7
-                    4.4  Rédaction et compilation . . . . . . . . . . . . . . . . . . . . . . . . . . . .       7
-                5 Travail réalisé                                                                               8
-                6 RQ1  Analyse de la topologie du réseau                                                       9
-                    6.1  Méthodologie . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       9
-                    6.2  Résultats . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   10
-                    6.3  Interprétation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    11
-                7 RQ2  Analyse de la centralité                                                              13
-                    7.1  Méthodologie . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      13
-                    7.2  Résultats . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   14
-                    7.3  Interprétation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    17
-                8 RQ3  Détection de communautés                                                              19
-                    8.1  Méthodologie . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      19
-                    8.2  Résultats . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   20
-                    8.3  Interprétation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    22
-                9 RQ4  Dynamique temporelle                                                                  24
-                    9.1  Méthodologie . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      24
-                    9.2  Résultats . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   25
-                    9.3  Interprétation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    27
-                10 RQ5  Propriétés petit-monde                                                               29
-                    10.1 Méthodologie . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      29
-                    10.2 Résultats . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   30
-                    10.3 Interprétation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    32
-                11 RQ6  Analyse des ux pondérés                                                             34
-                    11.1 Méthodologie . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      34
-                    11.2 Résultats . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   35
-                    11.3 Interprétation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    38
-                12 Dicultés rencontrées                                                                      40
-                                                                1
-                13 Bilan                                                                                        41
-                    13.1 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      41
-                    13.2 Perspectives . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      41
-                A Cahier des charges                                                                            45
-                    A.1 Contexte . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       45
-                    A.2 Objectifs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      45
-                    A.3 Périmètre fonctionnel . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        45
-                    A.4 Contraintes techniques . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         46
-                    A.5 Livrables attendus       . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   46
-                B Exemple d'exécution du projet                                                                 47
-                    B.1 Installation des dépendances . . . . . . . . . . . . . . . . . . . . . . . . . .         47
-                    B.2 Exécution des analyses . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         47
-                    B.3 Compilation du rapport . . . . . . . . . . . . . . . . . . . . . . . . . . . .           48
-                C Manuel utilisateur                                                                            50
-                    C.1 Prérequis      . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   50
-                    C.2 Installation     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   50
-                    C.3 Utilisation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      50
-                    C.4 Structure des chiers . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        51
-                                                                 2
-      1  Introduction
-        Le 5 août 2024, les marchés nanciers mondiaux se sont eondrés en quelques heures
-      unépisode vite surnommé  Lundi Noir  par la presse nancière. Le déclencheur : la
-      haussesurprise des taux directeurs annoncée le 31 juillet 2024 par la Banque du Japon [10],
-      qui a forcé le dénouement massif des positions de carry trade sur le yen. Le carry trade
-      consiste à emprunter dans une devise à faible taux d'intérêt (le yen, maintenu à des taux
-      négatifs depuis 2016) pour investir dans des actifs à rendement plus élevé [11]. Quand le
-      yen s'est brusquement apprécié, les investisseurs ont dû liquider leurs positions en même
-      temps pour couvrir leurs pertes de change, provoquant des ventes forcées sur toutes les
-      classes d'actifs. La contagion a atteint les marchés crypto : sur les blockchains de couche 2
-      comme Polygon, les protocoles de nance décentralisée (DeFi) ont subi des vagues de
-      liquidations et de transferts de panique. Sur la seule journée du 5 août, plus de 401000
-      transferts du jeton WETH (Wrapped Ether) ont été enregistrés sur Polygon.
-        Ces transferts forment un réseau orienté pondéré : chaque adresse Ethereum est un
-      sommet, chaque transfert une arête orientée de l'émetteur vers le récepteur, et le montant
-      transféré dénit le poids de l'arête. La théorie des graphes fournit les outils mathématiques
-      pour analyser la topologie de ce réseau, identier les acteurs centraux, mettre en évidence
-      la structure communautaire et suivre la dynamique temporelle des échanges [1]. Ce type
-      d'analyse va au-delà du simple décompte de transactions : il permet de faire apparaître la
-      concentration des ux, le rôle des plateformes d'échange décentralisées, et la fragmentation
-      du réseau en période de stress.
-        Le rapport s'organise autour de six questions de recherche (RQ) :
-        1. RQ1  Topologie du réseau : analyser la structure globale à travers la distri-
-         bution des degrés, la densité, les composantes connexes et le diamètre du graphe.
-        2. RQ2  Centralité : identier les n÷uds les plus inuents par quatre mesures
-         de centralité (degré, betweenness, closeness, PageRank) et interpréter leurs rôles.
-        3. RQ3  Communautés : détecter la structure communautaire par l'algorithme
-         de Louvain, mesurer la modularité et analyser la distribution des tailles de com-
-         munautés.
-        4. RQ4  Dynamique temporelle : découper la journée en fenêtres horaires et
-         suivre l'évolution des métriques du réseau pour identier les pics d'activité.
-        5. RQ5  Propriétés petit-monde : évaluer le coecient de clustering et la
-         longueur moyenne des chemins, puis comparer au modèle aléatoire d'Erd®s-Rényi.
-        6. RQ6  Flux pondérés : analyser la distribution des volumes WETH échangés,
-         quantier la concentration par le coecient de Gini et la courbe de Lorenz.
-        Après une présentation de l'environnement de travail et du jeu de données, les six
-      questions sont traitées successivement (méthodologie, résultats, interprétation). Un bilan
-      conclut le rapport et ouvre quelques perspectives.
-                         3
-               2     Environnement de travail
-                   Voici l'environnement matériel et logiciel utilisé pour le projet.
-                                     Table 1  Environnement de développement.
-                        Outil                     Version       Rôle
-                        Système d'exploitation    Windows 11    Plateforme de développement
-                        Python                    3.10+         Langage principal d'analyse
-                        pip                       24.x          Gestionnaire de paquets
-                        Git                       2.x           Contrôle de version
-                        VS Code                   1.9x          Éditeur de code
-                                                                             A
-                        T X Live                  2024          Distribution LT X
-                         E                                                     E
-                            A
-                        pdfLT X                   (inclus)      Compilation du rapport
-                              E
-                        Biber                     (inclus)      Backend bibliographique
-                        latexmk                   (inclus)      Automatisation compilation
-                   Python a été choisi pour ses bibliothèques scientiques (NumPy, Pandas, NetworkX,
-               Matplotlib). Les dépendances s'installent via pip install -r requirements.txt.
-                                                     A                           A            A
-                   Le rapport est compilé avec pdfLT X, plus simple que LuaLT X ou XeLT X et su-
-                                                       E                           E            E
-               sant pour un document en français avec l'encodage T1. T X Live fournit tous les paquets
-                                                                           E
-               nécessaires, et latexmk automatise les passes de compilation.
-                                                             4
-              3    Description du projet et objectifs
-              3.1   Données utilisées
-                 Lejeudedonnéesutilisédanscetteétudeprovientdelatablepubliquecrypto_polygon
-              .transactions hébergée sur Google BigQuery [12]. Les transactions ont été ltrées pour
-              ne retenir que les transferts du jeton WETH (Wrapped Ether), identié par l'adresse de
-              contrat 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619 [13], sur la seule journée du 5
-              août 2024. Le chier résultant, polygon_weth_crash_2024-08-05.csv, contient 401709
-              transactions pour un volume total de 74Mo. Le Tableau 2 résume les caractéristiques
-              principales du jeu de données.
-                         Table 2  Caractéristiques du jeu de données WETH Polygon.
-                       Propriété      Valeur
-                       Source         Google BigQuery (crypto_polygon)
-                       Token          WETH(Wrapped Ether)
-                       Blockchain     Polygon PoS
-                       Date           5 août 2024
-                       Transactions   401709
-                       Colonnes       transaction_hash, chrono, source, target, weight
-                       Taille         74Mo
-                 ChaqueenregistrementduchierCSVestdécritparcinqcolonnes:transaction_hash,
-              l'identiant unique de la transaction sur la blockchain Polygon; chrono, l'horodatage Unix
-              (nombre de secondes depuis l'epoch); source, l'adresse Ethereum du portefeuille émet-
-              teur; target, l'adresse Ethereum du portefeuille récepteur; et weight, le montant en
-              WETHtransféré.
-              3.2   Questions de recherche
-                 Le projet s'organise autour de six questions de recherche.
-              RQ1  Analyse de la topologie du réseau. Examiner la structure topologique
-              globale du réseau : distribution des degrés entrants et sortants, densité, composantes
-              faiblement et fortement connexes, diamètre et longueur moyenne des chemins. Déterminer
-              si le réseau présente des propriétés de type sans échelle, caractéristiques des réseaux où
-              quelques n÷uds concentrent un nombre disproportionné de connexions.
-              RQ2  Analyse de la centralité. Identier les n÷uds les plus inuents du réseau
-              par quatre mesures de centralité : degré, betweenness, closeness et PageRank. Comparer
-              les classements obtenus par chaque mesure et interpréter les rôles des acteurs centraux
-              dans l'écosystème DeFi (routeurs DEX, ponts inter-chaînes, cores-forts de protocoles).
-              RQ3Détection de communautés. Appliquer l'algorithme de Louvain pour révé-
-              ler la structure communautaire sous-jacente du réseau. Mesurer la modularité obtenue et
-              analyser la distribution des tailles de communautés. Évaluer le degré de compartimenta-
-              lisation du réseau et ses implications pour la propagation des chocs nanciers.
-                                                       5
-           RQ4  Dynamique temporelle. Découper la journée du 5 août 2024 en fenêtres
-           horaires et suivre l'évolution des métriques du réseau au cours du temps. Identier les
-           pics d'activité en nombre de transactions et en volume WETH, puis les relier au contexte
-           nancier mondial (sessions de marché asiatique, européenne et américaine).
-           RQ5  Propriétés petit-monde. Évaluer le coecient de clustering et la longueur
-           moyenne des chemins du réseau. Comparer ces métriques au modèle aléatoire d'Erd®s-
-           Rényi calibré avec les mêmes paramètres (n et p). Quantier le caractère petit-monde par
-           le coecient σ de Humphries et Gurney.
-           RQ6  Analyse des ux pondérés. Analyser la distribution des volumes WETH
-           échangés sur les arêtes du réseau. Quantier la concentration des ux par le coecient de
-           Gini et la courbe de Lorenz. Identier les whales (portefeuilles réalisant des transferts de
-           très grande valeur) et caractériser leur rôle dans le réseau.
-           3.3  Prétraitement des données
-              Le prétraitement comprend trois étapes. D'abord, les arêtes multiples entre une même
-           paire d'adresses sont agrégées par somme des poids, avec un attribut tx_count conser-
-           vant le nombre de transactions. Ensuite, un graphe orienté pondéré (DiGraph) de 12880
-           sommets et 39999 arêtes est construit avec NetworkX; une version non orientée (33827
-           arêtes) est dérivée pour RQ3 et RQ5. Enn, un ltrage dust à 10−12 WETH supprime
-           1598 arêtes (4%) de bruit numérique pour RQ6.
-                                             6
-            4    Bibliothèques, Outils et technologies
-               Les bibliothèques et technologies utilisées sont décrites ci-dessous, organisées par ca-
-            tégorie.
-            4.1   Analyse de graphe
-            NetworkX (v3.4.2). NetworkX [14] fournit les structures DiGraph et Graph utilisées
-            dans ce projet, ainsi que les algorithmes de centralité (degré, betweenness, closeness,
-            PageRank), de détection de communautés (Louvain, intégré depuis la version 3.2), de
-            composantes connexes, de clustering et de plus courts chemins. C'est le socle commun
-            aux six questions de recherche.
-            4.2   Visualisation
-            Matplotlib (v3.9.4). Matplotlib [15] génère les 16 gures PNG à 200 DPI. Deux
-            contextes graphiques sont utilisés : fond sombre (#0F172A) pour les graphes de réseau,
-            fond clair pour les graphiques analytiques. La palette de couleurs (bleu #2563EB, violet
-            #7C3AED, orange #F59E0B) est centralisée dans src/style.py.
-            4.3   Traitement de données
-            Pandas (v2.2.3). Pandas charge et manipule le CSV de 401709 transactions : conver-
-            sion des timestamps Unix en datetime, agrégation des arêtes multiples via groupby, et
-            fenêtrage horaire pour l'analyse temporelle (RQ4).
-            NumPy (v2.1). NumPy fournit les tableaux et opérations vectorisées pour les cal-
-            culs numériques : distributions de degrés, courbes de Lorenz, statistiques descriptives
-            (moyennes, médianes, percentiles).
-            SciPy (v1.14). SciPy complète NumPy pour les tests statistiques, les comparaisons de
-            distributions et les corrélations de rang (Spearman).
-            powerlaw (v2.0.0). Labibliothèque powerlaw ajuste des distributions à queue lourde :
-            estimation de l'exposant α et du seuil xmin par maximum de vraisemblance, et tests de
-            comparaison entre modèles (loi de puissance, lognormale, exponentielle), selon la métho-
-            dologie de Clauset et al. [2]. Utilisée en RQ1 et RQ6.
-            4.4   Rédaction et compilation
-             A              A                                           A
-            LT X avec pdfLT X. Le rapport est composé avec le système LT X, compilé par
-               E              E                                           E
-                         A
-            le moteur pdfLT X. Le document utilise la classe article avec 18 paquets organisés
-                           E
-            selon un ordre de chargement strict : babel pour les conventions typographiques fran-
-            çaises, amsmath pour la notation mathématique, booktabs pour les tableaux profession-
-            nels, graphicx pour l'inclusion des gures, biblatex pour la gestion bibliographique,
-            hyperref pour les liens cliquables et cleveref pour les références croisées intelligentes.
-            Labibliographie est gérée par biblatex avec le backend Biber, orant un support Unicode
-            complet pour les noms d'auteurs comportant des caractères accentués.
-                                                  7
-             5    Travail réalisé
-                Le projet s'est déroulé en quatre phases : collecte des données, construction du graphe,
-             analyses par question de recherche, et rédaction du rapport.
-             Collecte et préparation des données. Les 401709 transferts WETH du 5 août 2024
-             ont été extraits de la table publique crypto_polygon.transactions sur Google Big-
-             Query[12].Lerésultat,stockédanslechierCSVpolygon_weth_crash_2024-08-05.csv
-             (74Mo),aétésoumisàunprétraitementd'agrégation:lesarêtesmultiplesentreunemême
-             paire d'adresses (source, target) sont fusionnées par somme des poids (volume WETH) et
-             comptage des transactions. Un ltrage dust à 10−12 WETH supprime les micro-transferts
-             négligeables. Le graphe résultant comprend 12880 sommets et 39999 arêtes orientées
-             pondérées.
-             Construction du graphe. Le module graph_builder.py sert d'interface entre les
-             données brutes et les six analyses. Sa fonction load_and_build() retourne un triplet
-             (df, digraph, graph) : le DataFrame Pandas, un graphe orienté pondéré (DiGraph),
-             et un graphe non orienté (Graph) pour RQ3 et RQ5. Toutes les analyses travaillent ainsi
-             sur le même jeu de données.
-             Analyses par question de recherche. Six modules indépendants (src/rq1_*.py à
-             src/rq6_*.py) réalisent chacun une analyse et produisent deux gures PNG à 200 DPI
-             (16 au total). Le module src/style.py assure la cohérence graphique : fond sombre pour
-             les graphes de réseau, fond clair pour les graphiques analytiques. Le script run_all.py
-             exécute les six analyses à la suite.
-                                                              A                       A
-             Rédaction du rapport. Le rapport est rédigé en LT X et compilé avec pdfLT X +
-                                                                E                       E
-             Biber. Le chier principal main.tex inclut 17 chiers .tex (sections et annexes). La
-             bibliographie est scindée en deux : références académiques et webographie, ltrées par
-             mot-clé via biblatex.
-                                 Table 3  Répartition des tâches du projet
-                     Membre      Tâche                         Contribution
-                     [Membre 1]  Collecte BigQuery, RQ1, RQ2   Topologie, centralité
-                                                    A
-                     [Membre 2]  RQ3, RQ4, rapport LT X        Communautés, temporel
-                                                      E
-                     [Membre 3]  RQ5, RQ6, style graphique     Petit-monde, ux
-                                                     8
-           6   RQ1  Analyse de la topologie du réseau
-              On commence par examiner la structure topologique globale du réseau : distribution
-           des degrés, densité, composantes connexes, diamètre et longueur moyenne des chemins.
-           Cesmétriques donnent une première image de l'architecture des échanges WETH pendant
-           le crash.
-           6.1  Méthodologie
-              L'analyse topologique repose sur la construction d'un graphe orienté pondéré G =
-           (V,E) à partir des 401000 transferts WETH enregistrés le 5 août 2024. Chaque adresse
-           Ethereum constitue un sommet, et chaque transfert une arête orientée du portefeuille
-           émetteur vers le portefeuille récepteur. Les arêtes multiples entre une même paire de som-
-           mets sont agrégées par somme des poids (volume WETH) et comptage des transactions.
-              Quatre familles de métriques sont calculées. Premièrement, la densité du réseau,
-           dénie pour un graphe orienté comme :
-                                      d =    |E|                             (1)
-                                         |V | · (|V | − 1)
-           où |V| désigne le nombre de sommets et |E| le nombre d'arêtes. Cette métrique quantie
-           la proportion de connexions existantes par rapport au nombre maximal de connexions
-           possibles. Le degré moyen est donné par :
-                                          ¯  |E|
-                                          k = |V|                            (2)
-              Deuxièmement, les distributions des degrés entrants (kin) et sortants (kout) sont
-           analysées séparément. Plutôt qu'un histogramme classique, nous utilisons la fonction de
-           répartition complémentaire cumulative (CCDF), dénie par P(X ≥ k), représentée en
-           échelle logarithmique sur les deux axes. Cette représentation est préférable pour les dis-
-           tributions à queue lourde car elle évite les artefacts liés au choix des intervalles de re-
-           groupement et révèle plus clairement la forme de la distribution dans les hautes valeurs
-           de degré [2]. L'observation d'une relation linéaire en échelle log-log suggère un compor-
-           tement hétérogène caractéristique des réseaux dits  sans échelle , où quelques n÷uds
-           concentrent un nombre disproportionné de connexions [3].
-              Troisièmement,lescomposantesconnexessontidentiéesselondeuxdénitions.Les
-           composantes faiblement connexes (WCC, weakly connected components) ignorent l'orien-
-           tation des arêtes : deux sommets appartiennent à la même WCC s'il existe un chemin
-           non orienté entre eux. Les composantes fortement connexes (SCC, strongly connected
-           components) respectent l'orientation : deux sommets appartiennent à la même SCC si et
-           seulement s'il existe un chemin orienté de l'un à l'autre et réciproquement [1]. La taille
-           de la composante géante, exprimée en pourcentage du nombre total de sommets, indique
-           le degré de connectivité globale du réseau.
-              Quatrièmement, le diamètre (plus long des plus courts chemins) et la longueur
-           moyenne des chemins sont estimés. Le diamètre est calculé sur la plus grande compo-
-           sante fortement connexe, car il n'est déni que sur les graphes connexes. Lorsque cette
-           composante dépasse 5000 sommets, l'excentricité est échantillonnée sur 500 n÷uds aléa-
-           toires (graine xée à 42 pour la reproductibilité) an de réduire le coût de calcul. La
-           longueur moyenne des chemins est estimée sur la plus grande WCC (version non orientée
-           du graphe) par échantillonnage de 1000 paires aléatoires de sommets.
-                                             9
-             6.2   Résultats
-             Métriques de base. LeréseauWETHcomprend|V|=12880sommetset|E|=39999
-             arêtes orientées agrégées (33827 arêtes non orientées), pour une densité de d = 2,41×10−4.
-                              ¯
-             Le degré moyen est k = 3,11. Ces valeurs témoignent d'un réseau extrêmement creux : sur
-             les quelque 165 millions de connexions possibles, seule une inme fraction est eectivement
-             réalisée. La médiane des degrés entrants et sortants est de 1,0, ce qui signie que la
-             majorité des adresses n'ont interagi qu'avec un seul autre portefeuille au cours de la
-             journée.
-             Distribution des degrés.  LaFigure1présentelaCCDFdesdegrésentrantsetsortants
-             en échelle logarithmique. Les deux distributions présentent une queue lourde caractéris-
-             tique : le degré entrant maximal atteint kmax = 865 tandis que le degré sortant maximal
-                                                  in
-             culmineàkmax = 2003.LadécroissanceapproximativementlinéairedelaCCDFenéchelle
-                       out
-             log-log suggère un comportement compatible avec une distribution à queue lourde, typique
-             des réseaux sans échelle. Toutefois, nous ne qualions pas formellement cette distribution
-             de loi de puissance en l'absence de test statistique dédié (test de Kolmogorov-Smirnov,
-             estimation du paramètre α et de xmin) [2]. L'asymétrie entre degrés entrants et sortants
-             le maximum sortant étant plus de deux fois supérieur au maximum entrant  in-
-             dique la présence de n÷uds diuseurs (routeurs DEX, ponts inter-chaînes) dont l'activité
-             d'émission dépasse largement celle de réception.
-             Figure 1  Distribution complémentaire cumulative (CCDF) des degrés entrants et sor-
-             tants du réseau WETH sur échelle logarithmique. La queue lourde suggère un comporte-
-             ment hétérogène typique des réseaux sans échelle [3].
-             Composantes connexes. Le réseau contient 95 composantes faiblement connexes et
-             7632 composantes fortement connexes. La composante géante faiblement connexe re-
-             groupe 12538 sommets, soit 97,3% du réseau : la quasi-totalité des adresses actives sont
-             reliées par des chemins non orientés. En revanche, la composante géante fortement connexe
-                                                    10
-              ne contient que 5206 sommets (40,4%), ce qui révèle une asymétrie directionnelle impor-
-              tante : de nombreuses adresses reçoivent ou émettent des WETH sans réciprocité. Le
-              Tableau 4 résume ces résultats. La Figure 2 illustre la distribution de la taille des 20
-              plus grandes composantes pour chaque type, en échelle logarithmique en raison de la
-              dominance de la composante géante.
-                         Table 4  Résumé des composantes connexes du réseau WETH.
-                    Métrique                         Faiblement connexes   Fortement connexes
-                    Nombre de composantes                              95                 7632
-                    Composante géante (sommets)                    12538                  5206
-                    Composante géante (%)                          97,3%                 40,4%
-              Figure2Distributiondelatailledes20plusgrandescomposantesconnexes(faiblement
-              et fortement) du réseau WETH, en échelle logarithmique. La composante géante domine
-              nettement dans les deux cas.
-              Diamètreetlongueurdeschemins. Lediamètreduréseau,estimésurlaplusgrande
-              composante fortement connexe (5206 sommets) par échantillonnage de 500 excentricités
-              aléatoires, est d'environ D ≈ 14 sauts. La longueur moyenne des chemins, estimée sur
-              la plus grande composante faiblement connexe (12538 sommets, graphe non orienté) à
-                                                      ¯
-              partir de 1000 paires aléatoires, est de ℓ ≈ 3,97 sauts. Malgré les 12880 sommets du
-              réseau, deux adresses quelconques de la composante géante sont séparées en moyenne par
-              moins de quatre intermédiaires, ce qui témoigne d'une propagation ecace des transferts
-              de valeur.
-              6.3    Interprétation
-                                                    −4
-                 La densité très faible (d = 2,41×10   ) est typique des réseaux de transactions block-
-              chain, où la plupart des portefeuilles n'interagissent qu'avec une ou deux contreparties. Ce
-              réseau creux est pourtant presque entièrement connecté (WCC à 97,3%) : les transferts
-              transitent par un petit nombre de n÷uds centraux  routeurs DEX, ponts inter-chaînes,
-              contrats de prêt  qui servent de plaques tournantes [1].
-                 Laqueuelourdeestcohérenteavecl'attachementpréférentieldeBarabásietAlbert[3]:
-              les adresses les plus connectées attirent davantage de nouvelles connexions. Pendant un
-                                                        11
-      crash, l'eet s'amplie : les protocoles d'échange et de liquidation concentrent un nombre
-      croissant de transactions quand les utilisateurs cherchent tous à convertir ou transférer
-      leurs WETH en même temps. L'asymétrie entre degré sortant maximal (2003) et entrant
-      maximal (865) suggère que certains contrats  routeurs DEX ou bots de liquidation 
-      ont diusé des WETH vers un très grand nombre de destinataires.
-        L'écart notable entre la composante géante faiblement connexe (97,3%) et la compo-
-      sante géante fortement connexe (40,4%) révèle une structure dite  en n÷ud papillon 
-      (bow-tie), typique des réseaux orientés de grande taille : un noyau fortement connecté
-      de transferts bidirectionnels, entouré de branches entrantes (adresses qui reçoivent sans
-      émettre en retour) et de branches sortantes (adresses qui émettent sans recevoir). Cette
-      architecture est conforme aux observations faites sur d'autres réseaux de crypto-actifs.
-                                         ¯
-        Enn, un diamètre court (D ≈ 14) et une longueur moyenne des chemins de ℓ ≈ 3,97
-      pour près de 13000 sommets suggèrent déjà un comportement de type  petit monde 
-      (testé formellement en RQ5) : n'importe quelle adresse est séparée de n'importe quelle
-      autre par moins de quatre intermédiaires, ce qui a pu faciliter la cascade rapide de trans-
-      ferts de panique le 5 août.
-        La Figure 3 illustre cette architecture en étoile : le sous-graphe des 20 n÷uds les plus
-      connectés et de leurs voisins directs montre la centralisation extrême du réseau autour de
-      quelques hubs (en orange), chacun irradiant vers de nombreuses adresses périphériques.
-      Figure 3  Sous-graphe des 20 hubs principaux (en orange) du réseau WETH et de leurs
-      voisins directs. La topologie en étoile conrme la structure hub-and-spoke caractéristique
-      des réseaux sans échelle.
-                         12
-              7    RQ2  Analyse de la centralité
-                 Ladistributiondesdegrésàqueuelourde(RQ1)suggèrequecertainsn÷udsconcentrent
-              unnombredisproportionnédeconnexions.Onchercheiciàidentiercesn÷udsparquatre
-              mesures de centralité [4], et à déterminer si les mêmes adresses dominent systématique-
-              mentles quatre classements ou si chaque mesure capture un aspect diérent de l'inuence.
-              7.1    Méthodologie
-                 Quatre mesures de centralité sont calculées sur le graphe orienté pondéré G = (V,E)
-              construit à partir des 12880 sommets et 39999 arêtes agrégées du réseau WETH. Chaque
-              mesureéclaireunedimensiondiérentedel'importanced'unn÷ud:lenombredeconnexions
-              directes, le rôle d'intermédiaire, la proximité structurelle et l'importance relative dans un
-              modèle de marche aléatoire.
-              Centralité de degré. La centralité de degré mesure le nombre de connexions directes
-              d'un sommet, normalisé par le nombre maximal de connexions possibles. Pour un graphe
-              orienté, on distingue la centralité de degré entrant et sortant :
-                                               k (v)                  k  (v)
-                                      C (v) =    in   ,    C (v)= out                            (3)
-                                       in      |V | − 1      out     |V | − 1
-              où k (v) et k  (v) désignent respectivement le degré entrant et sortant du sommet v, et
-                  in       out
-              |V | = 12880 le nombre total de sommets. Un degré entrant élevé identie les adresses re-
-              cevant des transferts depuis de nombreuses sources (récepteurs populaires), tandis qu'un
-              degré sortant élevé signale les adresses émettant vers de nombreux destinataires (distri-
-              buteurs actifs).
-              Centralité d'intermédiarité.     La centralité d'intermédiarité (betweenness centrality),
-              introduite par Freeman [4], quantie le rôle d'un sommet comme pont entre les autres
-              paires de sommets :
-                                                         Xσ(v)
-                                               C (v) =        st                                 (4)
-                                                 B             σ
-                                                        s,t∈V   st
-                                                        s̸=v̸=t
-              où σst est le nombre de plus courts chemins entre s et t, et σst(v) le nombre de ces che-
-              mins passant par v. Un n÷ud à forte intermédiarité constitue un goulot d'étranglement
-              potentiel : sa suppression allongerait signicativement les chemins entre de nombreuses
-              paires de sommets. Le calcul exact de cette mesure est en O(|V| · |E|), ce qui représente
-              environ 5 × 108 opérations pour notre graphe. An de maintenir un temps d'exécution
-              raisonnable (environ 5 secondes au lieu de plusieurs heures), nous utilisons un échan-
-              tillonnage aléatoire de k = 500 sommets pivots avec une graine xée à 42 pour assurer
-              la reproductibilité. Cette approximation est standard dans la littérature pour les graphes
-              de plus de 5000 sommets [1].
-              Centralité de proximité. La centralité de proximité (closeness centrality) mesure la
-              proximité moyenne d'un sommet par rapport à tous les autres :
-                                                          |V ′| − 1
-                                             CC(v) =    X d(v,u)                                 (5)
-                                                      u∈V′,u̸=v
-                                                        13
-             où d(v,u) désigne la longueur du plus court chemin entre v et u, et |V′| le nombre de
-             sommets de la composante considérée. Cette mesure n'est dénie que lorsque tous les
-             sommets sont atteignables depuis v (i.e., d(v,u) < ∞ pour tout u). Or, le réseau WETH
-             présente 95 composantes faiblement connexes (cf. section 6.2), rendant le calcul impossible
-             sur le graphe complet. Nous restreignons donc le calcul à la plus grande composante
-             faiblement connexe (WCC) en version non orientée, qui contient 12538 sommets, soit
-             97,3% du réseau. Un n÷ud à forte proximité est structurellement  au centre  du réseau,
-             accessible en peu de sauts depuis n'importe quel autre sommet.
-             PageRank. Le PageRank, introduit par Page et al. [5], modélise l'importance d'un
-             sommet par une marche aléatoire avec redirection. À chaque pas, un marcheur aléatoire
-             suit une arête sortante avec probabilité (1 − α) ou se téléporte vers un sommet aléatoire
-             avec probabilité α. Le score PageRank de v correspond à la probabilité stationnaire de
-             présence du marcheur sur v. Nous utilisons le facteur d'amortissement standard α = 0,85
-             et la variante pondérée : les poids des arêtes (volumes WETH agrégés) inuencent la
-             probabilité de transition, de sorte que les n÷uds recevant des transferts de volume élevé
-             obtiennent un score supérieur. Contrairement à la simple centralité de degré, le PageRank
-             tient compte de la qualité des connexions entrantes : être connecté à un n÷ud lui-même
-             inu

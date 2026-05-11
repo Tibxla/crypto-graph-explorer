@@ -1,0 +1,65 @@
+% sections/bibliotheques.tex
+% Phase 9: Bibliotheques, Outils et Technologies (RAPP-04)
+
+\section{Biblioth\`eques, Outils et technologies}
+\label{sec:bibliotheques}
+
+Les biblioth\`eques et technologies utilis\'ees sont d\'ecrites ci-dessous,
+organis\'ees par cat\'egorie.
+
+\subsection{Analyse de graphe}
+
+\paragraph{NetworkX (v3.4.2).}
+NetworkX~\cite{networkx_docs} fournit les structures \texttt{DiGraph} et
+\texttt{Graph} utilis\'ees dans ce projet, ainsi que les algorithmes de
+centralit\'e (degr\'e, betweenness, closeness, PageRank), de d\'etection de
+communaut\'es (Louvain, int\'egr\'e depuis la version~3.2), de composantes
+connexes, de clustering et de plus courts chemins. C'est le socle commun
+aux six questions de recherche.
+
+\subsection{Visualisation}
+
+\paragraph{Matplotlib (v3.9.4).}
+Matplotlib~\cite{matplotlib_docs} g\'en\`ere les 16~figures PNG \`a 200~DPI.
+Deux contextes graphiques sont utilis\'es~: fond sombre (\texttt{\#0F172A})
+pour les graphes de r\'eseau, fond clair pour les graphiques analytiques.
+La palette de couleurs (bleu \texttt{\#2563EB}, violet \texttt{\#7C3AED},
+orange \texttt{\#F59E0B}) est centralis\'ee dans \texttt{src/style.py}.
+
+\subsection{Traitement de donn\'ees}
+
+\paragraph{Pandas (v2.2.3).}
+Pandas charge et manipule le CSV de 401\,709 transactions~: conversion
+des timestamps Unix en \texttt{datetime}, agr\'egation des ar\^etes multiples
+via \texttt{groupby}, et fen\^etrage horaire pour l'analyse temporelle (RQ4).
+
+\paragraph{NumPy (v2.1).}
+NumPy fournit les tableaux et op\'erations vectoris\'ees pour les calculs
+num\'eriques~: distributions de degr\'es, courbes de Lorenz, statistiques
+descriptives (moyennes, m\'edianes, percentiles).
+
+\paragraph{SciPy (v1.14).}
+SciPy compl\`ete NumPy pour les tests statistiques, les comparaisons de
+distributions et les corr\'elations de rang (Spearman).
+
+\paragraph{powerlaw (v2.0.0).}
+La biblioth\`eque \texttt{powerlaw} ajuste des distributions \`a queue
+lourde~: estimation de l'exposant $\alpha$ et du seuil $x_{\min}$ par
+maximum de vraisemblance, et tests de comparaison entre mod\`eles (loi de
+puissance, lognormale, exponentielle), selon la m\'ethodologie de Clauset
+et al.~\cite{clauset2009powerlaw}. Utilis\'ee en RQ1 et RQ6.
+
+\subsection{R\'edaction et compilation}
+
+\paragraph{\LaTeX{} avec pdf\LaTeX{}.}
+Le rapport est compos\'e avec le syst\`eme \LaTeX{}, compil\'e par le moteur
+pdf\LaTeX{}. Le document utilise la classe \texttt{article} avec 18~paquets
+organis\'es selon un ordre de chargement strict~: \texttt{babel} pour les
+conventions typographiques fran\c{c}aises, \texttt{amsmath} pour la notation
+math\'ematique, \texttt{booktabs} pour les tableaux professionnels,
+\texttt{graphicx} pour l'inclusion des figures, \texttt{biblatex} pour la
+gestion bibliographique, \texttt{hyperref} pour les liens cliquables et
+\texttt{cleveref} pour les r\'ef\'erences crois\'ees intelligentes. La
+bibliographie est g\'er\'ee par \texttt{biblatex} avec le backend Biber,
+offrant un support Unicode complet pour les noms d'auteurs comportant des
+caract\`eres accentu\'es.

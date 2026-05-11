@@ -630,7 +630,7 @@ export default function AnalysisPanel({
                   <div className="col-span-2">
                     <p className="text-[10px] text-muted-foreground">Est Small-World:</p>
                     <p className="font-bold" style={{color: analysisResults.isSmallWorld ? '#10b981' : '#ef4444'}}>
-                      {analysisResults.isSmallWorld ? '✓ OUI' : '✗ NON'}
+                      {analysisResults.isSmallWorld ? 'OUI' : 'NON'}
                     </p>
                   </div>
                 </div>
@@ -680,7 +680,7 @@ export default function AnalysisPanel({
               <div className="text-xs space-y-1">
                 <p className="text-[10px] text-muted-foreground">Heures de pointe: {analysisResults.peakHours.join(', ')}</p>
                 <p className="text-[10px] text-yellow-600 bg-yellow-500/10 rounded px-2 py-1 mt-2">
-                  ⚠ {analysisResults.recommendation}
+                  {analysisResults.recommendation}
                 </p>
               </div>
             </div>

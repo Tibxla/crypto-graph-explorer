@@ -1,0 +1,57 @@
+% sections/travail_realise.tex
+% Phase 10: Travail realise (RAPP-05)
+
+\section{Travail r\'ealis\'e}
+\label{sec:travail_realise}
+
+Le projet s'est d\'eroul\'e en quatre phases~: collecte des donn\'ees,
+construction du graphe, analyses par question de recherche, et r\'edaction
+du rapport.
+
+\paragraph{Collecte et pr\'eparation des donn\'ees.}
+Les 401\,709 transferts WETH du 5 ao\^ut 2024 ont \'et\'e extraits de la
+table publique \texttt{crypto\_polygon.transactions} sur Google
+BigQuery~\cite{bigquery_public}. Le r\'esultat, stock\'e dans le fichier
+CSV \texttt{polygon\_weth\_crash\_2024-08-05.csv} (74\,Mo), a \'et\'e soumis
+\`a un pr\'etraitement d'agr\'egation~: les ar\^etes multiples entre une m\^eme
+paire d'adresses (source, target) sont fusionn\'ees par somme des poids
+(volume WETH) et comptage des transactions. Un filtrage
+\textit{dust} \`a $10^{-12}$~WETH supprime les micro-transferts n\'egligeables.
+Le graphe r\'esultant comprend 12\,880 sommets et 39\,999 ar\^etes orient\'ees
+pond\'er\'ees.
+
+\paragraph{Construction du graphe.}
+Le module \texttt{graph\_builder.py} sert d'interface entre les donn\'ees
+brutes et les six analyses. Sa fonction \texttt{load\_and\_build()} retourne
+un triplet \texttt{(df, digraph, graph)}~: le DataFrame Pandas, un graphe
+orient\'e pond\'er\'e (\texttt{DiGraph}), et un graphe non orient\'e
+(\texttt{Graph}) pour RQ3 et RQ5. Toutes les analyses travaillent ainsi sur
+le m\^eme jeu de donn\'ees.
+
+\paragraph{Analyses par question de recherche.}
+Six modules ind\'ependants (\texttt{src/rq1\_*.py} \`a \texttt{src/rq6\_*.py})
+r\'ealisent chacun une analyse et produisent deux figures PNG \`a 200~DPI
+(16~au total). Le module \texttt{src/style.py} assure la coh\'erence
+graphique~: fond sombre pour les graphes de r\'eseau, fond clair pour les
+graphiques analytiques. Le script \texttt{run\_all.py} ex\'ecute les six
+analyses \`a la suite.
+
+\paragraph{R\'edaction du rapport.}
+Le rapport est r\'edig\'e en \LaTeX{} et compil\'e avec pdf\LaTeX{} + Biber.
+Le fichier principal \texttt{main.tex} inclut 17~fichiers \texttt{.tex}
+(sections et annexes). La bibliographie est scind\'ee en deux~: r\'ef\'erences
+acad\'emiques et webographie, filtr\'ees par mot-cl\'e via \texttt{biblatex}.
+
+\begin{table}[H]
+\centering
+\caption{R\'epartition des t\^aches du projet}
+\label{tab:repartition}
+\begin{tabular}{lll}
+\toprule
+\textbf{Membre} & \textbf{T\^ache} & \textbf{Contribution} \\
+\midrule
+Thibaud THOMAS-LAMOTTE & Collecte BigQuery, RQ1, RQ2, RQ3 & Topologie, centralit\'e, communaut\'es \\
+Youcef HEMISSI & RQ4, RQ5, RQ6, rapport \LaTeX{} & Temporel, petit-monde, flux \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,137 @@
+% sections/rq6.tex
+% Phase 8: RQ6 Flux Ponderes (RQ6-01 a RQ6-06)
+
+\section{RQ6 -- Analyse des flux pond\'er\'es}
+\label{sec:rq6}
+
+Les analyses pr\'ec\'edentes traitaient les ar\^etes comme de simples connexions binaires. On place ici leurs poids au centre du regard~: comment les volumes de transfert WETH se distribuent-ils sur le r\'eseau~? Sont-ils r\'epartis de mani\`ere homog\`ene, ou concentr\'es autour de quelques \textit{whales} dont les mouvements pilotent la dynamique \'economique~?
+
+Pour r\'epondre, on reprend deux outils classiques de l'\'economie des in\'egalit\'es, transpos\'es \`a l'analyse des r\'eseaux pond\'er\'es~\cite{newman2018networks}~: le coefficient de Gini, mesure synth\'etique de la concentration d'une distribution, et la courbe de Lorenz, sa repr\'esentation graphique. L'identification des ar\^etes les plus lourdes compl\`ete l'analyse en reliant la concentration statistique \`a des acteurs concrets de l'\'ecosyst\`eme DeFi.
+
+\subsection{M\'ethodologie}
+\label{sec:rq6_methodo}
+
+\paragraph{Extraction et filtrage des poids.}
+Le graphe orient\'e pond\'er\'e $G = (V, E)$ construit en RQ1 comporte $|E| = 39\,999$ ar\^etes, chacune porteuse d'un attribut \texttt{weight} repr\'esentant le volume total de WETH transf\'er\'e entre la paire d'adresses correspondante (pr\'e-agr\'eg\'e par somme depuis les $401\,709$ transactions brutes). Avant toute analyse distributionnelle, les \textit{transactions poussi\`ere} (\textit{dust transactions}), c'est-\`a-dire les ar\^etes de poids inf\'erieur \`a $10^{-12}$~WETH, sont filtr\'ees. Ce seuil \'elimine les micro-transferts n\'egligeables (pings automatis\'es, approbations \`a valeur nulle, erreurs d'arrondi) qui fausseraient les statistiques descriptives et la mesure de concentration sans porter de signification \'economique. Apr\`es filtrage, $1\,598$ ar\^etes poussi\`ere sont retir\'ees ($4{,}0\,\%$ du total), laissant $n = 38\,401$ ar\^etes pour l'analyse.
+
+\paragraph{Distribution des poids.}
+La distribution des poids des ar\^etes est repr\'esent\'ee sur un histogramme \`a \'echelle logarithmique sur l'axe des abscisses, avec 50 intervalles espac\'es logarithmiquement (\texttt{np.logspace}). Le recours \`a l'\'echelle logarithmique est indispensable~: la distribution couvrant plus de dix ordres de grandeur (du minimum $\approx 10^{-12}$ au maximum $\approx 10^{4}$ WETH), un histogramme \`a \'echelle lin\'eaire produirait une seule barre visible~\cite{clauset2009powerlaw}. Les lignes verticales de la moyenne et de la m\'ediane sont superpos\'ees afin de visualiser l'asym\'etrie extr\^eme de la distribution.
+
+\paragraph{Coefficient de Gini.}
+Le coefficient de Gini $G$ mesure la concentration d'une distribution de valeurs positives. Soit $w_{(1)} \leq w_{(2)} \leq \ldots \leq w_{(n)}$ les poids des $n$ ar\^etes tri\'es par ordre croissant. Le coefficient est d\'efini par~:
+\begin{equation}
+G = \frac{2 \displaystyle\sum_{i=1}^{n} i \cdot w_{(i)}}{n \displaystyle\sum_{i=1}^{n} w_{(i)}} - \frac{n+1}{n}
+\label{eq:gini}
+\end{equation}
+Un coefficient $G = 0$ indique une distribution parfaitement \'egalitaire (tous les transferts portent le m\^eme volume), tandis que $G = 1$ signifie une concentration maximale (une seule ar\^ete porte la totalit\'e du volume). Originellement introduit en \'economie pour quantifier les in\'egalit\'es de revenus, le coefficient de Gini s'applique naturellement \`a l'analyse des r\'eseaux pond\'er\'es pour caract\'eriser la concentration des flux de valeur~\cite{newman2018networks}.
+
+\paragraph{Courbe de Lorenz.}
+La courbe de Lorenz constitue la repr\'esentation graphique de la concentration mesur\'ee par le coefficient de Gini. Elle trace la \textbf{part cumul\'ee du volume total de WETH} (axe des ordonn\'ees) en fonction de la \textbf{part cumul\'ee des ar\^etes tri\'ees par poids croissant} (axe des abscisses). La diagonale \`a $45$\textdegree{} repr\'esente l'\textbf{\'egalit\'e parfaite}~: si tous les transferts portaient le m\^eme volume, la courbe de Lorenz co\"inciderait avec cette diagonale. L'aire comprise entre la ligne d'\'egalit\'e et la courbe de Lorenz est proportionnelle au coefficient de Gini~: plus cette aire est grande, plus la concentration est forte.
+
+\paragraph{Identification des \textit{whales}.}
+Les 10 ar\^etes portant les poids les plus \'elev\'es sont identifi\'ees comme les \textit{whales} du r\'eseau. Pour chacune, l'adresse source, l'adresse cible (tronqu\'ees pour la lisibilit\'e), le volume WETH et le nombre de transactions sous-jacentes sont rapport\'es. La part cumul\'ee du volume total repr\'esent\'ee par ces 10 transferts les plus importants est calcul\'ee, quantifiant ainsi le degr\'e de domination des flux les plus lourds sur l'\'economie du r\'eseau.
+
+\subsection{R\'esultats}
+\label{sec:rq6_resultats}
+
+\paragraph{Statistiques descriptives des poids.}
+Le volume total \'echang\'e sur les $38\,401$ ar\^etes retenues est de $210\,979{,}67$~WETH. La distribution est tr\`es asym\'etrique~: la moyenne des poids vaut $5{,}4941$~WETH, mais la m\'ediane n'est que de $0{,}0231$~WETH, soit un \'ecart de plus de deux ordres de grandeur. L'\'ecart-type ($107{,}39$~WETH) d\'epasse la moyenne d'un facteur 20, ce qui dit la m\^eme chose autrement. Le poids minimum apr\`es filtrage est de $1{,}73 \times 10^{-12}$~WETH (juste au-dessus du seuil poussi\`ere), le maximum atteint $10\,324{,}46$~WETH. Les centiles donnent la forme de la queue~: $25^{\text{e}}$ \`a $0{,}0018$~WETH, $75^{\text{e}}$ \`a $0{,}2375$~WETH, $90^{\text{e}}$ \`a $1{,}78$~WETH, $95^{\text{e}}$ \`a $5{,}80$~WETH, $99^{\text{e}}$ \`a $65{,}44$~WETH. Autrement dit, 75\,\% des ar\^etes portent moins d'un quart de WETH, alors que le 1\,\% sup\'erieur d\'epasse 65~WETH. La Figure~\ref{fig:rq6_weight_dist} illustre cette distribution en \'echelle logarithmique, o\`u l'\'ecart entre les lignes de moyenne et de m\'ediane mat\'erialise l'asym\'etrie.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{rq6_weight_distribution.png}
+  \caption{Distribution des poids des transferts WETH (\'echelle logarithmique, 50 intervalles). Les lignes verticales indiquent la moyenne ($5{,}49$ WETH, rouge) et la m\'ediane ($0{,}023$ WETH, jaune). L'\'ecart de plus de deux ordres de grandeur entre ces deux valeurs t\'emoigne de l'extr\^eme asym\'etrie de la distribution.}
+  \label{fig:rq6_weight_dist}
+\end{figure}
+
+\paragraph{Concentration des flux~: coefficient de Gini.}
+Le coefficient de Gini calcul\'e sur les $38\,401$ ar\^etes filtr\'ees s'\'el\`eve \`a $G = 0{,}9780$, une valeur t\'emoignant d'une \textbf{concentration extr\^eme} des flux de valeur. Pour contextualiser, le coefficient de Gini des revenus des pays les plus in\'egalitaires (Afrique du Sud, Br\'esil) se situe entre $0{,}50$ et $0{,}65$~; les pays scandinaves pr\'esentent des Gini de $0{,}25$--$0{,}30$. Le Gini de $0{,}9780$ observ\'e ici d\'epasse largement ces r\'ef\'erences, ce qui est coh\'erent avec la nature des r\'eseaux de transactions blockchain, o\`u les flux sont structurellement domin\'es par des contrats automatiques traitant des volumes consid\'erables.
+
+\paragraph{Courbe de Lorenz.}
+La courbe de Lorenz (Figure~\ref{fig:rq6_lorenz}) traduit visuellement la concentration~: elle \'epouse le coin inf\'erieur droit et reste tr\`es loin de la diagonale d'\'egalit\'e. En chiffres, les 90\,\% d'ar\^etes les plus l\'eg\`eres ne portent que 2{,}3\,\% du volume total~; les 10\,\% les plus lourdes en concentrent 97{,}7\,\%. L'asym\'etrie est plus forte encore dans l'extr\^eme sup\'erieur~: le 1\,\% d'ar\^etes les plus lourdes (384 ar\^etes) transporte \`a lui seul 81{,}3\,\% du volume, soit environ $171\,200$~WETH sur $210\,980$.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{rq6_lorenz_curve.png}
+  \caption{Courbe de Lorenz des flux WETH. La diagonale repr\'esente l'\'egalit\'e parfaite. La courbe, fortement concave et \'epousant le coin inf\'erieur droit, confirme la concentration extr\^eme des volumes ($G = 0{,}9780$). L'aire gris\'ee entre la diagonale et la courbe est proportionnelle au coefficient de Gini.}
+  \label{fig:rq6_lorenz}
+\end{figure}
+
+\paragraph{Identification des \textit{whales}.}
+Le Tableau~\ref{tab:rq6_whales} pr\'esente les 10 transferts les plus volumineux du r\'eseau. Ces 10 ar\^etes p\`esent \`a elles seules 24{,}4\,\% du volume total ($51\,573{,}51$ WETH sur $210\,979{,}67$). En regardant de plus pr\`es, les 10 \textit{whales} forment 5 paires bidirectionnelles. Le transfert \no1 (de \texttt{0x55ca...8207} vers \texttt{0x3cc2...6580}, $10\,324{,}46$~WETH en 252 transactions) et le transfert \no2 (sens inverse, $10\,323{,}64$~WETH en 134 transactions) impliquent les m\^emes adresses dans les deux directions, avec des volumes quasi identiques. Les quatre autres paires suivent le m\^eme sch\'ema. Cette sym\'etrie bidirectionnelle est la signature caract\'eristique des \textbf{pools de liquidit\'e des \'echanges d\'ecentralis\'es} (\textit{AMM}, \textit{Automated Market Makers})~: les contrats de pool re\c{c}oivent du WETH des utilisateurs qui \'echangent, puis en restituent lors des transactions inverses, cr\'eant un flux bidirectionnel de volume \'equivalent.
+
+\begin{table}[H]
+\centering
+\caption{Top-10 des transferts WETH les plus importants (\textit{whales}). Les rangs impairs et pairs forment des paires bidirectionnelles entre les m\^emes adresses, caract\'eristiques des pools de liquidit\'e DEX.}
+\label{tab:rq6_whales}
+\begin{tabular}{rlllr}
+\toprule
+Rang & Source & Cible & Volume (WETH) & Tx \\
+\midrule
+1 & \texttt{0x55ca...8207} & \texttt{0x3cc2...6580} & $10\,324{,}46$ & 252 \\
+2 & \texttt{0x3cc2...6580} & \texttt{0x55ca...8207} & $10\,323{,}64$ & 134 \\
+3 & \texttt{0xa6ae...9719} & \texttt{0x3974...214f} & $5\,264{,}12$ & 214 \\
+4 & \texttt{0x3974...214f} & \texttt{0xa6ae...9719} & $5\,263{,}40$ & 118 \\
+5 & \texttt{0xa4d8...28d9} & \texttt{0x1fd4...2a78} & $3\,805{,}55$ & 213 \\
+6 & \texttt{0x1fd4...2a78} & \texttt{0xa4d8...28d9} & $3\,805{,}21$ & 108 \\
+7 & \texttt{0xb694...c474} & \texttt{0x3365...4662} & $3\,274{,}71$ & 190 \\
+8 & \texttt{0x3365...4662} & \texttt{0xb694...c474} & $3\,274{,}69$ & 107 \\
+9 & \texttt{0x9cef...10f2} & \texttt{0x5928...f09f} & $3\,119{,}02$ & 210 \\
+10 & \texttt{0x5928...f09f} & \texttt{0x9cef...10f2} & $3\,118{,}72$ & 111 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Interpr\'etation}
+\label{sec:rq6_interpretation}
+
+\paragraph{Concentration extr\^eme et infrastructure DeFi.}
+Un Gini de $0{,}9780$ dit qu'une fraction infime des ar\^etes transporte
+presque tout le volume. Ce n'est pas un effet de crise propre au 5 ao\^ut~:
+c'est la fa\c{c}on dont fonctionne la DeFi en r\'egime normal, o\`u les flux
+de valeur transitent par quelques contrats d'infrastructure (pools AMM,
+protocoles de pr\^et et de liquidation, ponts inter-cha\^ines) qui traitent
+par construction des volumes \'enormes. Les 5 paires bidirectionnelles du
+Tableau~\ref{tab:rq6_whales} ressemblent \`a des pools WETH/stablecoin ou
+WETH/MATIC sur les principaux DEX de Polygon (QuickSwap, Uniswap~v3,
+SushiSwap). La quasi-\'egalit\'e des volumes dans les deux sens ($10\,324{,}46$
+contre $10\,323{,}64$~WETH pour la premi\`ere paire) est la signature du
+m\'ecanisme AMM~: chaque \'echange dans un sens produit un flux compensatoire
+dans l'autre, ce qui maintient la r\'eserve du pool autour de son \'equilibre.
+
+\paragraph{Amplification de crise et cascade de liquidations.}
+Le 5 ao\^ut, cette concentration a amplifi\'e le choc plut\^ot que de
+l'absorber. Quelques ar\^etes lourdes (les pools de liquidit\'e) ont
+canalis\'e l'essentiel des ventes paniqu\'ees. Quand le prix du WETH chute,
+les positions \`a effet de levier passent sous leur seuil de liquidation, ce
+qui d\'eclenche des transferts automatis\'es vers ces pools, qui propagent
+\`a leur tour le choc de prix. La courbe de Lorenz montre l'envers du
+d\'ecor~: les 90\,\% d'ar\^etes les plus l\'eg\`eres (petits traders, transferts
+secondaires) ne pesent que $2{,}3\,\%$ du volume. L'\'economie du r\'eseau
+repose sur l'infrastructure, pas sur le flux retail. \c{C}a colle avec le
+double pic de RQ4 (section~\ref{sec:rq4_interpretation})~: le pic de volume
+\`a 01h~UTC ($21\,517{,}99$~WETH) tient \`a ces transferts massifs entre pools
+(liquidations nocturnes), alors que le pic transactionnel de 13h tient \`a
+un grand nombre de petits transferts (panique retail) qui ne d\'eplacent
+qu'une fraction modeste du volume.
+
+Les r\'esultats des six RQ pointent dans le m\^eme sens. Le r\'eseau est
+\og sans \'echelle \fg{} sur les connexions (RQ1) comme sur les volumes~: les
+\textit{whales} de RQ6 sont les m\^emes routeurs et ponts qui dominaient les
+classements de centralit\'e en RQ2. La structure modulaire de RQ3 cloisonne
+les petits flux mais les transferts massifs franchissent les fronti\`eres
+communautaires. Le pic de volume nocturne (RQ4) s'explique par ces ar\^etes
+\`a gros d\'ebit, et les chemins courts du petit-monde (RQ5,
+$\bar{\ell} \approx 3{,}97$) permettent au choc de liquidit\'e d'atteindre les
+r\'egions p\'eriph\'eriques en quelques sauts.
+
+La Figure~\ref{fig:rq6_whale_network} illustre cette concentration~: les 50 ar\^etes les plus lourdes forment un sous-graphe dense o\`u l'\'epaisseur des liens est proportionnelle au volume transf\'er\'e. Les n\oe{}uds sources nettes apparaissent en bleu et les puits nets en rouge.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.90\textwidth]{rq6_whale_network.png}
+  \caption{Sous-graphe des 50 transferts WETH les plus volumineux. L'\'epaisseur des ar\^etes est proportionnelle au volume transf\'er\'e (\'echelle logarithmique). Les n\oe{}uds bleus sont des sources nettes (\'emetteurs), les rouges des puits nets (r\'ecepteurs).}
+  \label{fig:rq6_whale_network}
+\end{figure}
+
+Avec RQ6, l'image d'ensemble se pr\'ecise~: un \'ecosyst\`eme DeFi o\`u l'architecture en \'etoile, les chemins courts et la concentration des volumes autour de quelques pools de liquidit\'e cr\'eent les conditions d'une amplification syst\'emique des chocs financiers.

@@ -143,7 +143,7 @@ export default function GraphStats({ nodes, edges, loading = false, selectedNode
       {/* Instructions */}
       {!isMinimized && (
         <div className="backdrop-blur-md bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-[10px]">
-          <div className="text-gray-300">💡 <span className="text-yellow-200">Sélectionnez un nœud pour voir les détails</span></div>
+          <div className="text-gray-300"><span className="text-yellow-200">Sélectionnez un nœud pour voir les détails</span></div>
         </div>
       )}
     </div>

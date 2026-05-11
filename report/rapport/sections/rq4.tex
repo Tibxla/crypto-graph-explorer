@@ -1,0 +1,89 @@
+% sections/rq4.tex
+% Phase 6: RQ4 Temporel (RQ4-01 a RQ4-06)
+
+\section{RQ4 -- Dynamique temporelle}
+\label{sec:rq4}
+
+Jusqu'ici, le r\'eseau a \'et\'e analys\'e comme un instantan\'e agr\'eg\'e sur la journ\'ee enti\`ere. Mais le crash du 5 ao\^ut ne s'est pas produit d'un seul coup~: les march\'es asiatiques, europ\'eens et am\'ericains ont r\'eagi les uns apr\`es les autres, cr\'eant des vagues d'activit\'e d\'ecal\'ees. On d\'esagr\`ege ici les donn\'ees par fen\^etre horaire pour voir comment le r\'eseau a \'evolu\'e au fil de la journ\'ee~: quand l'activit\'e a-t-elle atteint son pic, et comment cette signature temporelle se relie-t-elle aux sessions des march\'es financiers mondiaux~\cite{newman2018networks}~?
+
+\subsection{M\'ethodologie}
+\label{sec:rq4_methodo}
+
+\paragraph{D\'ecoupage en fen\^etres horaires.}
+Le jeu de donn\'ees couvre la journ\'ee compl\`ete du 5 ao\^ut 2024 en temps universel coordonn\'e (\texttt{UTC}). Chaque transaction porte un horodatage Unix (colonne \texttt{chrono}, exprim\'e en secondes depuis l'\'epoque), converti en datetime \texttt{UTC}-aware via \texttt{pd.to\_datetime(unit='s', utc=True)}. Le choix explicite de \texttt{UTC} \'evite toute contamination par le fuseau horaire local de la machine d'ex\'ecution, garantissant la reproductibilit\'e des r\'esultats ind\'ependamment de la localisation g\'eographique de l'analyste. La journ\'ee est partitionn\'ee en 24 fen\^etres horaires $W_h$ ($h \in \{0, 1, \ldots, 23\}$), o\`u $W_h$ regroupe les transactions dont l'horodatage tombe dans l'intervalle $[h{:}00{:}00,\; h{:}59{:}59]$ \texttt{UTC}.
+
+\paragraph{Construction de graphes par fen\^etre.}
+Pour chaque heure $h$, un graphe orient\'e pond\'er\'e $G_h = (V_h, E_h)$ est construit \`a partir des transactions tombant dans $W_h$. Les ar\^etes multiples entre une m\^eme paire d'adresses $(u, v)$ sont agr\'eg\'ees par somme des poids WETH, produisant une ar\^ete unique pond\'er\'ee par le volume cumul\'e. Ce proc\'ed\'e g\'en\`ere 24 instantan\'es ind\'ependants du r\'eseau, chacun capturant la structure de connectivit\'e et les flux de valeur propres \`a son heure.
+
+\paragraph{M\'etriques calcul\'ees par fen\^etre.}
+Six m\'etriques sont calcul\'ees pour chaque graphe horaire $G_h$~:
+\begin{itemize}
+  \item \textbf{Nombre de n\oe{}uds actifs}~: $|V_h|$ (adresses distinctes ayant particip\'e \`a au moins un transfert pendant l'heure $h$).
+  \item \textbf{Nombre d'ar\^etes}~: $|E_h|$ (paires ordonn\'ees distinctes $(u, v)$ apr\`es agr\'egation).
+  \item \textbf{Nombre de transactions}~: $T_h$ (nombre brut de transferts individuels avant agr\'egation).
+  \item \textbf{Densit\'e}~: $\delta_h = \frac{|E_h|}{|V_h| \cdot (|V_h| - 1)}$ pour un graphe orient\'e~\cite{newman2018networks}. Cette m\'etrique mesure la fraction de connexions r\'ealis\'ees par rapport au maximum th\'eorique.
+  \item \textbf{Degr\'e moyen}~: $\bar{k}_h = \frac{2\,|E_h|}{|V_h|}$, rapportant le nombre d'ar\^etes au nombre de n\oe{}uds.
+  \item \textbf{Volume WETH total}~: $\mathcal{V}_h = \sum_{e \in E_h} w(e)$, la somme des poids de toutes les ar\^etes de $G_h$.
+\end{itemize}
+
+\paragraph{Gestion des heures vides et identification des pics.}
+Toute heure sans transaction produit $G_h = \emptyset$ avec l'ensemble des m\'etriques fix\'ees \`a z\'ero, assurant la robustesse du calcul. L'identification de la \textbf{p\'eriode de pic} repose sur un seuil de 50\,\% du nombre maximal de transactions~: les heures cons\'ecutives dont $T_h$ exc\`ede ce seuil d\'efinissent la plage de pic soutenu. Ce crit\`ere simple distingue les pics isol\'es d'une activit\'e durablement \'elev\'ee.
+
+\subsection{R\'esultats}
+\label{sec:rq4_resultats}
+
+\paragraph{Couverture temporelle.}
+Le jeu de donn\'ees contient $401\,709$ transactions r\'eparties sur la totalit\'e des 24 heures du 5 ao\^ut 2024 (\texttt{UTC}), de 00h00m05s \`a 23h59m59s. Aucune heure n'est vide~: les 24 fen\^etres pr\'esentent une activit\'e non nulle, t\'emoignant du caract\`ere continu du march\'e des crypto-actifs. Le volume total \'echang\'e sur la journ\'ee s'\'el\`eve \`a $210\,979{,}67$ WETH.
+
+\paragraph{Heures de pic.}
+L'activit\'e suit un double pic. Le pic de transactions tombe \`a 13h~UTC avec $28\,146$ transactions et $1\,960$ n\oe{}uds actifs~; le pic de volume tombe \`a 01h~UTC avec $21\,517{,}99$~WETH \'echang\'es et $5\,791$ ar\^etes (maximum de la journ\'ee). Pic transactionnel et pic volum\'etrique ne co\"incident pas, ce qui pointe vers deux r\'egimes d'activit\'e distincts au cours du crash. Le Tableau~\ref{tab:rq4_peaks} pr\'esente les cinq heures les plus actives en nombre de transactions.
+
+\begin{table}[H]
+\centering
+\caption{Les cinq heures les plus actives du r\'eseau WETH le 5 ao\^ut 2024 (\texttt{UTC}), class\'ees par nombre de transactions.}
+\label{tab:rq4_peaks}
+\begin{tabular}{crrrr}
+\toprule
+Heure (\texttt{UTC}) & Transactions & N\oe{}uds & Ar\^etes & Volume WETH \\
+\midrule
+13h & $28\,146$ & $1\,960$ & $4\,692$ & $16\,699{,}53$ \\
+14h & $23\,455$ & $1\,893$ & $4\,568$ & $8\,663{,}91$ \\
+01h & $22\,905$ & $1\,781$ & $5\,791$ & $21\,517{,}99$ \\
+16h & $20\,056$ & $1\,695$ & $4\,198$ & $4\,603{,}21$ \\
+00h & $19\,993$ & $1\,532$ & $4\,974$ & $14\,000{,}83$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La p\'eriode de pic soutenu, d\'efinie par les heures cons\'ecutives d\'epassant 50\,\% du maximum transactionnel ($14\,073$ transactions), s'\'etend de 10h \`a 18h~UTC, soit une plage de 9 heures continues avec une moyenne de $19\,866$ transactions par heure et un volume cumul\'e de $74\,961$~WETH. Les heures nocturnes (00h--07h~UTC) montrent aussi une activit\'e soutenue, qui d\'epasse souvent le seuil de 50\,\% mais sans se rattacher \`a la plage diurne.
+
+\paragraph{\'Evolution des m\'etriques structurelles.}
+La Figure~\ref{fig:rq4_temporal} pr\'esente l'\'evolution des six m\'etriques sur 24 heures. Le sous-graphique sup\'erieur montre l'activit\'e du r\'eseau~: les transactions (barres) et les n\oe{}uds/ar\^etes (lignes) suivent un profil en U invers\'e avec un creux relatif \`a 09h \texttt{UTC} ($10\,691$ transactions) encadr\'e par deux p\'eriodes d'activit\'e \'elev\'ee. Le nombre de n\oe{}uds actifs culmine \`a 13h ($1\,960$), co\"incidant avec le pic transactionnel, tandis que le nombre d'ar\^etes atteint son maximum \`a 01h ($5\,791$), co\"incidant avec le pic volum\'etrique.
+
+Le sous-graphique inf\'erieur montre un effet contre-intuitif~: la densit\'e \'evolue en sens inverse du nombre de transactions. L'heure la plus dense est 23h ($\delta = 0{,}002905$), heure de faible activit\'e ($9\,790$ transactions)~; l'heure la moins dense est 13h ($\delta = 0{,}001222$), c'est-\`a-dire le pic transactionnel. L'explication tient \`a l'afflux de nouveaux participants. \`A 13h, $1\,960$ n\oe{}uds distincts sont actifs contre $969$ \`a 23h, mais ces nouveaux arrivants cr\'eent surtout des connexions uniques (un seul transfert)~; $|V_h|$ cro\^it alors plus vite que $|E_h|$, ce qui dilue la densit\'e. Le degr\'e moyen confirme cette tendance~: il atteint son maximum \`a 05h ($\bar{k} = 6{,}52$) et son minimum \`a 15h ($\bar{k} = 4{,}56$), indiquant que les heures nocturnes pr\'esentent un r\'eseau plus compact o\`u chaque n\oe{}ud \'echange avec davantage de contreparties.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{rq4_temporal_evolution.png}
+  \caption{\'Evolution temporelle de l'activit\'e du r\'eseau WETH sur 24 heures (5 ao\^ut 2024, \texttt{UTC}). En haut~: nombre de transactions (barres) et n\oe{}uds/ar\^etes actifs (lignes). En bas~: densit\'e, degr\'e moyen et volume WETH \'echang\'e. La zone ombr\'ee rouge indique la p\'eriode de pic soutenu (10h--18h \texttt{UTC}).}
+  \label{fig:rq4_temporal}
+\end{figure}
+
+\paragraph{Carte de chaleur.}
+La Figure~\ref{fig:rq4_heatmap} pr\'esente la carte de chaleur normalis\'ee (min-max par m\'etrique) des six m\'etriques sur 24 heures. La repr\'esentation rend lisibles les corr\'elations et les d\'ecalages entre m\'etriques. Transactions, n\oe{}uds et ar\^etes suivent des profils proches, avec des valeurs \'elev\'ees entre 00h et 06h puis entre 10h et 18h. Le volume WETH se distingue par une concentration marqu\'ee \`a 01h (valeur normalis\'ee de 1{,}0), bien au-dessus des heures voisines. La densit\'e suit un gradient invers\'e~: ses valeurs les plus \'elev\'ees (couleurs chaudes) tombent aux heures de faible activit\'e transactionnelle (22h--23h), ce qui rejoint l'observation quantitative pr\'ec\'edente. Le degr\'e moyen tient un profil interm\'ediaire, avec des valeurs \'elev\'ees r\'eparties sur les heures nocturnes (00h--07h) et une diminution progressive pendant le pic diurne.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{rq4_heatmap.png}
+  \caption{Carte de chaleur de l'activit\'e du r\'eseau WETH par heure et par m\'etrique. Les valeurs sont normalis\'ees entre 0 et 1 pour chaque m\'etrique (min-max). Les heures de forte activit\'e transactionnelle (couleurs chaudes sur les premi\`eres lignes) co\"incident avec une densit\'e et un degr\'e moyen plus faibles, r\'ev\'elant l'effet de dilution par les nouveaux participants.}
+  \label{fig:rq4_heatmap}
+\end{figure}
+
+\subsection{Interpr\'etation}
+\label{sec:rq4_interpretation}
+
+Le double pic (volume \`a 01h~UTC, transactions \`a 13h~UTC) s'inscrit dans la chronologie du Lundi Noir. Le d\'enouement des positions de \textit{carry trade} sur le yen a d\'ebut\'e lors de la s\'eance asiatique (Tokyo ouvre \`a 00h~UTC en heure d'\'et\'e). Les premi\`eres liquidations automatiques de positions \`a effet de levier ont produit des transferts de volume unitaire \'elev\'e, ce qui explique le pic de volume \`a 01h ($21\,517{,}99$~WETH) et le nombre maximal d'ar\^etes ($5\,791$) avec moins de n\oe{}uds qu'au pic diurne. Ces transferts ressemblent \`a des liquidations de protocoles DeFi et \`a des r\'e\'equilibrages de pools, op\'er\'es par un nombre restreint d'adresses de contrats intelligents qui d\'eplacent de gros volumes. Le pic transactionnel de 13h tombe lorsque les march\'es europ\'eens sont en s\'eance et que Wall Street ouvre (13h30~UTC). Il correspond \`a une r\'eaction de masse~: un grand nombre d'adresses individuelles ($1\,960$ n\oe{}uds, maximum de la journ\'ee) font des transferts de volume moyen plus faible, ce qu'on attend d'une panique retail. Le creux relatif \`a 09h ($10\,691$ transactions) co\"incide avec la fermeture de la session asiatique et l'ouverture progressive de la session europ\'eenne, un intervalle transitoire typique des march\'es financiers mondiaux.
+
+L'inversion densit\'e/activit\'e \'eclaire la r\'eponse du r\'eseau au choc. Aux heures de pic, le nombre de n\oe{}uds actifs cro\^it plus vite que celui des ar\^etes~: les nouveaux participants, qu'ils soient attir\'es par la volatilit\'e ou pouss\'es par des liquidations, ouvrent surtout des connexions uniques avec un petit nombre de contreparties (typiquement un routeur DEX ou un pool de liquidit\'e). Cette injection de n\oe{}uds p\'eriph\'eriques dilue la densit\'e du graphe horaire. La structure en n\oe{}ud papillon de RQ1 (section~\ref{sec:rq1_interpretation}) explique pourquoi~: les branches entrantes et sortantes du \textit{bow-tie} s'\'etendent pendant le pic, et y ajoutent des adresses \`a usage unique qui ne participent pas aux \'echanges r\'eciproques du noyau fortement connexe. Aux heures nocturnes (22h--23h), le r\'eseau redevient plus compact et plus dense, domin\'e par les op\'erateurs habituels (les n\oe{}uds multi-centraux de RQ2, section~\ref{sec:rq2}) qui gardent des connexions multiples entre eux.
+
+Le double pic s'inscrit dans la lecture des autres analyses. Les n\oe{}uds \`a forte interm\'ediarit\'e de RQ2, en particulier \texttt{0x2818...cb7116}, ont vraisemblablement canalis\'e les flux de panique entre les communaut\'es d\'etect\'ees en RQ3. La structure communautaire a jou\'e un r\^ole de barri\`ere partielle~: le choc initi\'e dans les protocoles de liquidation nocturne (pic \`a 01h) n'a atteint les traders individuels qu'\`a l'ouverture des sessions europ\'eenne et am\'ericaine (pic \`a 13h).

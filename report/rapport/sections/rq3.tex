@@ -1,0 +1,87 @@
+% sections/rq3.tex
+% Phase 5: RQ3 Communautes (RQ3-01 a RQ3-06)
+
+\section{RQ3 -- D\'etection de communaut\'es}
+\label{sec:rq3}
+
+Le r\'eseau WETH pr\'esente-t-il une structure communautaire, autrement dit des groupes d'adresses qui interagissent pr\'ef\'erentiellement entre elles~? Identifier ces groupes permettrait de retrouver les \'ecosyst\`emes fonctionnels (pools de liquidit\'e, protocoles DeFi, clusters d'utilisateurs) qui structurent les \'echanges sur Polygon. On applique pour cela l'algorithme de Louvain~\cite{blondel2008louvain}, adapt\'e aux r\'eseaux de grande taille.
+
+\subsection{M\'ethodologie}
+\label{sec:rq3_methodo}
+
+\paragraph{D\'efinition de la structure communautaire.}
+Une communaut\'e dans un r\'eseau est un sous-ensemble de sommets dont la densit\'e d'ar\^etes internes exc\`ede celle attendue dans un graphe al\'eatoire poss\'edant la m\^eme s\'equence de degr\'es. La qualit\'e d'un partitionnement en communaut\'es est mesur\'ee par la \textbf{modularit\'e} $Q$, d\'efinie par~\cite{newman2018networks}~:
+\begin{equation}
+Q = \frac{1}{2m} \sum_{ij} \left[ A_{ij} - \frac{k_i k_j}{2m} \right] \delta(c_i, c_j)
+\label{eq:modularity}
+\end{equation}
+o\`u $A_{ij}$ est l'\'el\'ement de la matrice d'adjacence, $k_i$ le degr\'e du sommet $i$, $m = |E|$ le nombre total d'ar\^etes, $c_i$ la communaut\'e assign\'ee au sommet $i$, et $\delta$ le symbole de Kronecker ($\delta(c_i, c_j) = 1$ si $c_i = c_j$, $0$ sinon). La modularit\'e compare la fraction d'ar\^etes intracommunautaires \`a celle attendue sous un mod\`ele nul de configuration al\'eatoire. Une valeur de $Q > 0{,}3$ est g\'en\'eralement consid\'er\'ee comme indicatrice d'une structure communautaire significative, tandis que $Q > 0{,}6$ t\'emoigne d'une structure forte.
+
+\paragraph{Algorithme de Louvain.}
+L'algorithme de Louvain~\cite{blondel2008louvain} proc\`ede en deux phases it\'eratives. Dans la premi\`ere phase (\textit{optimisation locale}), chaque sommet est d\'eplac\'e vers la communaut\'e voisine qui maximise le gain de modularit\'e $\Delta Q$~; ce processus est r\'ep\'et\'e jusqu'\`a convergence. Dans la seconde phase (\textit{agr\'egation}), les communaut\'es obtenues sont contract\'ees en supern\oe{}uds formant un graphe r\'eduit, et le processus recommence. Ces deux phases alternent jusqu'\`a ce qu'aucun d\'eplacement ne puisse am\'eliorer $Q$. L'algorithme pr\'esente une complexit\'e en $O(|E|)$ par it\'eration, le rendant applicable aux r\'eseaux de grande taille. Nous utilisons l'impl\'ementation native de NetworkX (\texttt{nx.community.louvain\_communities}) avec un param\`etre de r\'esolution $\gamma = 1{,}0$ (r\'esolution standard de Newman-Girvan) et une graine al\'eatoire fix\'ee \`a 42 pour assurer la reproductibilit\'e des r\'esultats.
+
+\paragraph{Conversion en graphe non orient\'e.}
+L'algorithme de Louvain op\`ere exclusivement sur des graphes non orient\'es. Le graphe orient\'e pond\'er\'e $G = (V, E)$ construit en RQ1 est donc converti en sa version non orient\'ee~: pour chaque paire de sommets $(u, v)$ connect\'ee par une ou plusieurs ar\^etes orient\'ees, une ar\^ete non orient\'ee est cr\'e\'ee dont le poids est la somme des poids des ar\^etes orient\'ees correspondantes. Cette transformation pr\'eserve la structure de connectivit\'e et les volumes d'\'echange, tout en \'eliminant l'information directionnelle. Ce choix est standard dans la litt\'erature pour appliquer les m\'ethodes de d\'etection de communaut\'es fond\'ees sur la modularit\'e aux r\'eseaux orient\'es~\cite{newman2018networks}. Le graphe non orient\'e r\'esultant comporte $12\,880$ sommets et $33\,827$ ar\^etes pond\'er\'ees.
+
+\paragraph{Strat\'egie de visualisation.}
+Le r\'eseau complet de $12\,880$ sommets produirait une visualisation illisible. Nous adoptons donc une strat\'egie de sous-\'echantillonnage cibl\'e~: les sept plus grandes communaut\'es sont s\'electionn\'ees, et pour chacune, un \'echantillon al\'eatoire de 100 n\oe{}uds au maximum est extrait (graine fix\'ee \`a 42), pour un total d'environ 400 n\oe{}uds repr\'esentatifs. Le sous-graphe induit par ces n\oe{}uds est trac\'e avec un algorithme de positionnement \`a ressorts (Fruchterman-Reingold), les n\oe{}uds \'etant color\'es par communaut\'e d'appartenance et dimensionn\'es proportionnellement \`a leur degr\'e dans le sous-graphe.
+
+\subsection{R\'esultats}
+\label{sec:rq3_resultats}
+
+\paragraph{Communaut\'es d\'etect\'ees.}
+L'algorithme de Louvain identifie 174 communaut\'es dans le r\'eseau WETH, avec une modularit\'e $Q = 0{,}6445$. C'est au-dessus du seuil usuel de $0{,}3$ et proche de $0{,}7$, ce qui indique une structure communautaire bien marqu\'ee~: les adresses forment des groupes au sein desquels les \'echanges sont beaucoup plus fr\'equents que dans un graphe al\'eatoire de m\^eme s\'equence de degr\'es. Parmi ces 174 communaut\'es, 26 contiennent au moins 10 n\oe{}uds, tandis que seulement 3 sont des singletons (communaut\'es r\'eduites \`a une seule adresse). La taille moyenne des communaut\'es est de $74{,}0$ n\oe{}uds, mais la m\'ediane n'est que de $2{,}0$, r\'ev\'elant une distribution des tailles extr\^emement asym\'etrique.
+
+\paragraph{Distribution des tailles.}
+La distribution des tailles de communaut\'es pr\'esente une h\'et\'erog\'en\'eit\'e marqu\'ee~: la plus grande communaut\'e regroupe $2\,981$ n\oe{}uds, soit $23{,}1\,\%$ de l'ensemble du r\'eseau, tandis que la majorit\'e des communaut\'es ne contiennent que quelques adresses. Les cinq plus grandes communaut\'es concentrent \`a elles seules $82{,}5\,\%$ des n\oe{}uds du r\'eseau, ce qui t\'emoigne d'une organisation fortement hi\'erarchis\'ee o\`u quelques macro-communaut\'es coexistent avec de nombreux micro-groupes p\'eriph\'eriques. Le Tableau~\ref{tab:rq3_sizes} d\'etaille la composition des dix plus grandes communaut\'es. La Figure~\ref{fig:rq3_sizes} illustre la distribution compl\`ete des vingt plus grandes communaut\'es en \'echelle logarithmique, mettant en \'evidence le rapport de taille sup\'erieur \`a $100\times$ entre la plus grande et la vingti\`eme communaut\'e.
+
+\begin{table}[H]
+\centering
+\caption{Taille des dix plus grandes communaut\'es d\'etect\'ees par l'algorithme de Louvain ($Q = 0{,}6445$, r\'esolution $\gamma = 1{,}0$).}
+\label{tab:rq3_sizes}
+\begin{tabular}{crc}
+\toprule
+Communaut\'e & N\oe{}uds & \% du r\'eseau \\
+\midrule
+C1  & 2\,981 & 23{,}1\,\% \\
+C2  & 2\,414 & 18{,}7\,\% \\
+C3  & 2\,338 & 18{,}2\,\% \\
+C4  & 1\,542 & 12{,}0\,\% \\
+C5  & 1\,381 & 10{,}7\,\% \\
+C6  & 805   & 6{,}3\,\% \\
+C7  & 179   & 1{,}4\,\% \\
+C8  & 176   & 1{,}4\,\% \\
+C9  & 138   & 1{,}1\,\% \\
+C10 & 101   & 0{,}8\,\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{rq3_community_sizes.png}
+  \caption{Distribution de la taille des vingt plus grandes communaut\'es, ordonn\'ees par taille d\'ecroissante (\'echelle logarithmique). Les cinq premi\`eres communaut\'es (barres color\'ees) repr\'esentent $82{,}5\,\%$ du r\'eseau~; les communaut\'es restantes (gris) forment une longue tra\^ine de micro-groupes. La ligne pointill\'ee indique la taille moyenne ($74{,}0$ n\oe{}uds).}
+  \label{fig:rq3_sizes}
+\end{figure}
+
+\paragraph{Structure communautaire.}
+La Figure~\ref{fig:rq3_communities} pr\'esente la visualisation du sous-graphe des sept principales communaut\'es (environ 400 n\oe{}uds sous-\'echantillonn\'es). Les communaut\'es apparaissent comme des amas distincts et relativement bien s\'epar\'es dans l'espace de positionnement \`a ressorts, confirmant visuellement la valeur \'elev\'ee de la modularit\'e. Les ar\^etes intercommunautaires, bien que pr\'esentes, se concentrent sur un nombre restreint de n\oe{}uds de forte connectivit\'e situ\'es \`a la p\'eriph\'erie de chaque amas, jouant le r\^ole de ponts entre communaut\'es. Les n\oe{}uds de degr\'e \'elev\'e (repr\'esent\'es par des cercles de grande taille) tendent \`a occuper des positions centrales au sein de leur communaut\'e, coh\'erent avec la structure en \'etoile attendue autour des contrats de protocoles DeFi.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{rq3_communities.png}
+  \caption{Visualisation du sous-graphe des sept principales communaut\'es d\'etect\'ees par l'algorithme de Louvain~\cite{blondel2008louvain}. Les n\oe{}uds sont color\'es par communaut\'e d'appartenance et dimensionn\'es selon leur degr\'e. Le positionnement \`a ressorts (Fruchterman-Reingold, graine~42) r\'ev\`ele une s\'eparation nette entre les amas communautaires.}
+  \label{fig:rq3_communities}
+\end{figure}
+
+\paragraph{Concentration et in\'egalit\'e.}
+L'\'ecart entre la taille moyenne ($74{,}0$) et la taille m\'ediane ($2{,}0$) des communaut\'es traduit une in\'egalit\'e structurelle extr\^eme~: la distribution des tailles est domin\'ee par quelques communaut\'es g\'eantes, tandis que la majorit\'e des 174 groupes sont des micro-communaut\'es de deux \`a dix adresses. Ce profil est coh\'erent avec la distribution des degr\'es \`a queue lourde identifi\'ee en RQ1~: les n\oe{}uds concentrateurs (routeurs DEX, ponts, protocoles de pr\^et) attirent un grand nombre de voisins dans leur communaut\'e d'appartenance, cr\'eant des amas de grande taille autour de chaque infrastructure DeFi majeure.
+
+\subsection{Interpr\'etation}
+\label{sec:rq3_interpretation}
+
+Avec $Q = 0{,}6445$, le r\'eseau WETH s'organise en compartiments fonctionnels plut\^ot qu'en espace d'\'echange homog\`ene. Chaque grande communaut\'e correspond probablement \`a un \'ecosyst\`eme protocolaire (pool de liquidit\'e DEX, protocole de pr\^et, pont inter-cha\^ines, agr\'egateur de rendement). Les adresses d'un m\^eme protocole partagent beaucoup d'ar\^etes, d'o\`u la densit\'e intracommunautaire \'elev\'ee. Le fait que cinq communaut\'es regroupent $82{,}5\,\%$ du r\'eseau indique que l'activit\'e WETH du 5 ao\^ut s'est concentr\'ee sur cinq infrastructures DeFi majeures, les 169 autres communaut\'es regroupant des usages plus marginaux.
+
+Cette structure modulaire change la fa\c{c}on dont un choc se propage. \`A l'int\'erieur d'une communaut\'e, la densit\'e \'elev\'ee fait que la panique se diffuse vite~: les contreparties d'un m\^eme pool se passent le mouvement de vente en quelques sauts. Entre communaut\'es, la propagation passe presque exclusivement par les n\oe{}uds \`a forte interm\'ediarit\'e identifi\'es en RQ2 (\texttt{0x2818...cb7116}, \texttt{0xe50f...8128c8})~; ces ponts intercommunautaires sont moins nombreux, donc le choc met plus de temps \`a franchir les fronti\`eres protocolaires. La compartimentalisation joue donc le r\^ole d'un amortisseur partiel.
+
+La structure en n\oe{}ud papillon de RQ1 se superpose au partitionnement~: le noyau fortement connexe (SCC, $40{,}4\,\%$) se r\'epartit dans les cinq grandes communaut\'es, et les branches entrantes ou sortantes du \textit{bow-tie} correspondent aux micro-communaut\'es p\'eriph\'eriques. Les n\oe{}uds multi-centraux de RQ2 occupent les positions de liaison entre communaut\'es, ce qui explique pourquoi leur interm\'ediarit\'e est \'elev\'ee.

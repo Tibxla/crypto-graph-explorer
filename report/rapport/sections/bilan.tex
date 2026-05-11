@@ -1,0 +1,92 @@
+% sections/bilan.tex
+% Phase 10: Bilan -- Conclusion et Perspectives (RAPP-07, RAPP-08)
+
+\section{Bilan}
+\label{sec:bilan}
+
+\subsection{Conclusion}
+\label{subsec:conclusion}
+
+Les 401\,709 transferts WETH du 5 ao\^ut 2024 sur Polygon ont \'et\'e
+analys\'es sous six angles compl\'ementaires. Le Tableau~\ref{tab:synthese_rq}
+r\'esume les r\'esultats.
+
+\begin{table}[H]
+\centering
+\caption{Synth\`ese des r\'esultats par question de recherche}
+\label{tab:synthese_rq}
+\begin{tabular}{llll}
+\toprule
+\textbf{RQ} & \textbf{M\'etrique cl\'e} & \textbf{R\'esultat}
+  & \textbf{Interpr\'etation} \\
+\midrule
+RQ1 & Densit\'e & $2{,}41 \times 10^{-4}$
+  & R\'eseau creux, structure hub \\
+RQ2 & Centralit\'e & Top-10 multi-mesures
+  & Routeurs DEX dominants \\
+RQ3 & Modularit\'e $Q$ & 0{,}6445
+  & Compartimentalisation DeFi \\
+RQ4 & Pics d'activit\'e & 01h / 13h UTC
+  & Liquidations vs panique \\
+RQ5 & Sigma $\sigma$ & 115{,}90
+  & Petit-monde confirm\'e \\
+RQ6 & Gini $G$ & 0{,}9780
+  & Concentration extr\^eme \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Le r\'eseau est creux ($d = 2{,}41 \times 10^{-4}$) mais presque enti\`erement
+connect\'e (WCC \`a 97{,}3\,\%). Il s'organise autour de quelques hubs (routeurs
+DEX, ponts, coffres-forts de protocoles) qui canalisent l'essentiel des flux
+(RQ1, RQ2). Ces hubs structurent 174 communaut\'es ($Q = 0{,}6445$), qui
+correspondent aux diff\'erents protocoles DeFi (RQ3). L'analyse temporelle
+(RQ4) fait appara\^itre deux pics distincts~: liquidations automatiques \`a
+gros volume autour de 01h~UTC, puis panique retail \`a 13h~UTC \`a
+l'ouverture de Wall Street. Les m\'etriques petit-monde sortent tr\`es
+au-dessus du r\'ef\'erent al\'eatoire ($\sigma = 115{,}90$, RQ5), et la
+concentration de volume est extr\^eme ($G = 0{,}9780$, RQ6)~: 1\,\% des
+ar\^etes transportent 81{,}3\,\% du volume.
+
+Mis bout \`a bout, ces six r\'esultats dessinent un m\^eme r\'eseau~: rapide et
+efficace en temps normal parce que peu de hubs traitent beaucoup de flux,
+fragile en temps de crise pour la m\^eme raison. Quelques hubs concentrent
+connexions et volumes, les chemins sont courts donc les chocs voyagent vite,
+et la liquidit\'e d\'epend d'un petit nombre de pools. Le 5 ao\^ut 2024, ces
+propri\'et\'es ont jou\'e ensemble.
+
+\subsection{Perspectives}
+\label{subsec:perspectives}
+
+Plusieurs pistes prolongeraient ce travail.
+
+\paragraph{Fitting power-law formel.}
+L'analyse topologique (RQ1) a sugg\'er\'e une distribution des degr\'es \`a
+queue lourde sans toutefois fournir de test statistique formel. Une analyse
+rigoureuse selon la m\'ethodologie de Clauset et
+al.~\cite{clauset2009powerlaw} (estimation de l'exposant $\alpha$ et du
+seuil $x_{\min}$ par maximum de vraisemblance, suivie d'un test de
+Kolmogorov-Smirnov comparant les mod\`eles power-law, lognormal et
+exponentiel) permettrait de statuer sur la nature sans \'echelle du
+r\'eseau.
+
+\paragraph{Analyse multi-tokens.}
+La pr\'esente \'etude se limite aux transferts WETH. \'Etendre l'analyse
+aux transferts ETH, USDC et MATIC sur la m\^eme journ\'ee r\'ev\'elerait si
+les propri\'et\'es structurelles observ\'ees (topologie hub-and-spoke,
+petit-monde, concentration extr\^eme) sont sp\'ecifiques au WETH ou
+caract\'eristiques de l'ensemble de l'\'ecosyst\`eme DeFi sur Polygon.
+
+\paragraph{Analyse multi-jours.}
+Le clich\'e unique du 5 ao\^ut 2024 capture le crash mais pas la
+dynamique de r\'ecup\'eration. Analyser les jours pr\'ec\'edant, pendant et
+suivant le Lundi Noir permettrait d'observer l'\'evolution de la topologie
+du r\'eseau \`a travers les phases de crise~: stabilit\'e pr\'e-choc,
+propagation du choc et restructuration post-choc.
+
+\paragraph{Visualisation interactive.}
+Les figures PNG statiques servent le format PDF du rapport mais limitent
+l'exploration des donn\'ees. Un tableau de bord web (utilisant par exemple
+Plotly ou D3.js) avec filtrage temporel, zoom sur les communaut\'es et
+inspection au niveau des n\oe{}uds permettrait une analyse interactive
+approfondie du r\'eseau de 12\,880 sommets.
