@@ -64,7 +64,7 @@ Environnement Dev :
 ### Installation
 
 ```bash
-git clone https://github.com/Tibxla/crypto-graph-explorer.git
+git clone https://github.com/krat0s-web/crypto-graph-explorer.git
 cd crypto-graph-explorer
 npm install
 
